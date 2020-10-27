@@ -353,6 +353,7 @@ const stmt_all_staging_blocks = staging_db.prepare('SELECT * FROM staging_blocks
 // transactions query
 const stmt_all_transactions = use_txs ? headers_db.prepare('SELECT * FROM transactions') : null
 
+let transaction_count = 0
 const burn_blocks_by_height = []
 const burn_blocks_by_burn_header_hash = {}
 const burn_blocks_by_consensus_hash = {}
@@ -589,6 +590,9 @@ function process_transactions() {
     transactions_by_stacks_block_id[row.index_block_hash].push(row)  // TODO(psq): only txid enough?
   }
   // console.log("transactions_by_stacks_block_id", transactions_by_stacks_block_id)
+  for (let key of Object.keys(transactions_by_stacks_block_id)) {
+    transaction_count += transactions_by_stacks_block_id[key].length - 1
+  }
 }
 
 
@@ -755,6 +759,10 @@ function process_burnchain_ops() {
   // }
 
 
+  if (use_txs) {
+    console.log("========================================================================================================================")
+    console.log("total transactions (excl coinbase)", transaction_count)
+  }
   console.log("========================================================================================================================")
   console.log("STX address/BTC address - actual wins/total wins/total mined %won %actual wins - paid satoshis Th[theoritical win%] (avg paid)")
   for (let miner_key of Object.keys(miners).sort()) {
