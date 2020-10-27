@@ -688,7 +688,15 @@ function process_burnchain_ops() {
 
     console.log(block.block_height,
       // block.block_commits.map(bc => `${bc.leader_key_address.substring(0, 10)}${bc.txid === block.winning_block_txid ? '*' : ' '}(${bc.key_block_ptr})`).sort((a, b) => a.localeCompare(b)).join(' '),
-      block.block_commits.map(bc => `${bc.leader_key_address.substring(0, 10)}${bc.txid === block.winning_block_txid ? '*' : ' '}`).sort((a, b) => a.localeCompare(b)).join(''),
+      block.block_commits
+        .map(
+          (bc) =>
+            `${bc.leader_key_address.substring(0, 10)} ${bc.burn_fee}${
+              bc.txid === block.winning_block_txid ? "*" : " "
+            }`
+        )
+        .sort((a, b) => a.localeCompare(b))
+        .join(""),
       // block.payments.length,
       // block.staging_blocks.length,
       // block.stacks_block_height,
@@ -772,7 +780,7 @@ function process_burnchain_ops() {
     miner.average_burn = miner.burned / miner.mined
     miner.normalized_wins = miner.won / miner.average_burn
     miner.burn_per_win = miner.burned / miner.won;
-    miner.profit = miner.won * 1000 * 0.15 - (miner.burned / 100000000) * 13000;
+    miner.profit = miner.won * 500 * 0.15 - (miner.burned / 100000000) * 13000;
   }
 
   console.log(
