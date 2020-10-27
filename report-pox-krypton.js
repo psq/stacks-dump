@@ -479,7 +479,7 @@ function process_snapshots() {
     console.log("missing blocks", burn_blocks_by_height.filter(b => !b))
     process.exit()
   }
-  console.log("burn_blocks_by_height", JSON.stringify(burn_blocks_by_height, null, 2))
+  // console.log("burn_blocks_by_height", JSON.stringify(burn_blocks_by_height, null, 2))
 }
 
 function process_leader_keys() {
@@ -550,8 +550,8 @@ function post_process_winning_fork() {
     burn_block.branch_info.winning_fork = true
     const winning_block_txid = burn_block.winning_block_txid
     const winner = burn_block.block_commits.find(bc => bc.txid === burn_block.winning_block_txid)
-          // const winning_miner = miners[winner.leader_key_address]
-          // winning_miner.actual_win++
+    const winning_miner = miners[winner.leader_key_address]
+    winning_miner.actual_win++
     actual_win_total++
     // console.log(stacks_block.block_height)
     current_tip = stacks_block.parent_block
@@ -594,7 +594,7 @@ function process_transactions() {
 //     timestamp INTEGER NOT NULL,
 function process_burnchain_blocks() {
   const result = stmt_all_burnchain_headers.all()
-  console.log("process_burnchain_blocks", result)
+  // console.log("process_burnchain_blocks", result)
   for (let burn_block of result) {
     burn_block
   }
@@ -607,6 +607,8 @@ function process_burnchain_blocks() {
 function process_burnchain_ops() {
   const result = stmt_all_burnchain_ops.all()
   // console.log("process_burnchain_ops", result)
+  console.log("========================================================================================================================")
+  console.log("Leader key registrations")
   for (let row of result) {
     if (!burnchain_ops_by_burn_hash[row.block_hash]) {
       burnchain_ops_by_burn_hash[row.block_hash] = []
@@ -617,10 +619,15 @@ function process_burnchain_ops() {
       op.LeaderBlockCommit.public_key = secp256k1.publicKeyConvert(Buffer.from(op.LeaderBlockCommit.input.public_keys[0].key, 'hex'), op.LeaderBlockCommit.input.public_keys[0].compressed).toString('hex')
       op.LeaderBlockCommit.stacks_address = getAddressFromPublicKey(op.LeaderBlockCommit.public_key, TransactionVersion.Testnet)
       op.LeaderBlockCommit.btc_address = c32.c32ToB58(op.LeaderBlockCommit.stacks_address)
+    } else if (op.LeaderKeyRegister) {
+      op.LeaderKeyRegister.stacks_address = c32.c32address(op.LeaderKeyRegister.address.version, op.LeaderKeyRegister.address.bytes)
+      // console.log(op.LeaderKeyRegister)
+      console.log(op.LeaderKeyRegister.block_height, op.LeaderKeyRegister.vtxindex, op.LeaderKeyRegister.stacks_address, )
     }
     burnchain_ops_by_burn_hash[row.block_hash].push(op)
   }
-  console.log("burnchain_ops_by_burn_hash", JSON.stringify(burnchain_ops_by_burn_hash, null, 2))
+  // console.log("burnchain_ops_by_burn_hash", JSON.stringify(burnchain_ops_by_burn_hash, null, 2))
+  console.log("========================================================================================================================")
 }
 
 
@@ -669,7 +676,8 @@ function process_burnchain_ops() {
     const txids = block.block_headers.length && use_txs ? `[${transactions_by_stacks_block_id[stacks_block_id].map(tx => tx.txid.substring(0, 10)).join(',')}]` : ''
 
     console.log(block.block_height,
-      block.block_commits.map(bc => `${bc.leader_key_address.substring(0, 10)}${bc.txid === block.winning_block_txid ? '*' : ' '}(${bc.key_block_ptr})`).sort((a, b) => a.localeCompare(b)).join(' '),
+      // block.block_commits.map(bc => `${bc.leader_key_address.substring(0, 10)}${bc.txid === block.winning_block_txid ? '*' : ' '}(${bc.key_block_ptr})`).sort((a, b) => a.localeCompare(b)).join(' '),
+      block.block_commits.map(bc => `${bc.leader_key_address.substring(0, 10)}${bc.txid === block.winning_block_txid ? '*' : ' '}`).sort((a, b) => a.localeCompare(b)).join(''),
       // block.payments.length,
       // block.staging_blocks.length,
       // block.stacks_block_height,
@@ -741,11 +749,19 @@ function process_burnchain_ops() {
   // }
 
 
-  console.log()
-  console.log("STX address - actual wins/total wins/total mined - % won - % actual wins - burn satoshis (avg burn)")
+  console.log("========================================================================================================================")
+  console.log("STX address/BTC address - actual wins/total wins/total mined %won %actual wins - paid satoshis (avg paid)")
   for (let miner_key of Object.keys(miners).sort()) {
     const miner = miners[miner_key]
-    console.log(`${miner_key}-${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.won / miner.mined * 100).toFixed(2)}% ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${miner.burned} (${miner.burned / miner.mined})`)
+    console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.won / miner.mined * 100).toFixed(2)}% ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% - ${miner.burned} (${miner.burned / miner.mined})`)
+    miner.average_burn = miner.burned / miner.mined
+    miner.normalized_wins = miner.won / miner.average_burn
+  }
+
+  console.log("========================================================================================================================")
+  for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].normalized_wins - miners[a].normalized_wins))) {
+    const miner = miners[miner_key]
+    console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.won / miner.mined * 100).toFixed(2)}% ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% - ${miner.burned} (${miner.burned / miner.mined}) ${miner.normalized_wins}`)
   }
 
 
