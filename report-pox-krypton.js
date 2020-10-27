@@ -426,6 +426,7 @@ function post_process_miner_stats() {
   let total_burn_prev = 0
   for (let block of burn_blocks_by_height) {
     const total_burn = parseInt(block.total_burn) - total_burn_prev
+    block.actual_burn = total_burn
     total_burn_prev = parseInt(block.total_burn)
     // console.log(block.block_height, total_burn)
     for (let block_commit of block.block_commits) {
@@ -702,7 +703,7 @@ function process_burnchain_ops() {
       block.block_headers.length ? `b:${block.block_headers[0].burn_header_hash.substring(0, 10)}` : '-',
 
       block.block_headers.length ? `${block.block_headers[0].parent_block === parent_hash ? ((parent_winner_address ? parent_winner_address.leader_key_address : null) === (current_winner_address ? current_winner_address.leader_key_address : null) ? '@+' : '@@') : '  '}` : '  ',
-
+      block.actual_burn,
       txids,
       // (is_argon_or_psq || block.block_headers.length === 0) ? '' : `<================================= ${current_winner_address ? current_winner_address.leader_key_address : 'no winner'}`
 
