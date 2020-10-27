@@ -3,6 +3,8 @@ import sha512 from 'js-sha512'
 import Database from 'better-sqlite3'
 import stacks_transactions from '@blockstack/stacks-transactions'
 const { getAddressFromPublicKey, TransactionVersion } = stacks_transactions
+import secp256k1 from 'secp256k1'
+
 
 // const root = '/Users/psq/src/perso/stacks-blockchain/.stack.1'
 // const root = '/Users/psq/src/perso/stacks-blockchain/.stack.2' // week 27
@@ -610,7 +612,8 @@ function process_burnchain_ops() {
     }
     const op = JSON.parse(row.op)
     if (op.LeaderBlockCommit) {
-      const stacks_address = getAddressFromPublicKey(op.LeaderBlockCommit.input.public_keys[0].key, TransactionVersion.Testnet) // TODO(psq): make it work for other sig types
+      // const stacks_address = getAddressFromPublicKey(op.LeaderBlockCommit.input.public_keys[0].key, TransactionVersion.Testnet) // TODO(psq): make it work for other sig types, breaks with compressed=false
+      const stacks_address = getAddressFromPublicKey(secp256k1.publicKeyConvert(Buffer.from(op.LeaderBlockCommit.input.public_keys[0].key, 'hex'), op.LeaderBlockCommit.input.public_keys[0].compressed).toString('hex'), TransactionVersion.Testnet)
       op.LeaderBlockCommit.burn_header_hash_hex = Buffer.from(op.LeaderBlockCommit.burn_header_hash).toString('hex')
       op.LeaderBlockCommit.stacks_address = stacks_address
 
