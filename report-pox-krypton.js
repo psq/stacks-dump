@@ -4,6 +4,7 @@ import Database from 'better-sqlite3'
 import stacks_transactions from '@blockstack/stacks-transactions'
 const { getAddressFromPublicKey, TransactionVersion } = stacks_transactions
 import secp256k1 from 'secp256k1'
+import c32 from 'c32check'
 
 
 // const root = '/Users/psq/src/perso/stacks-blockchain/.stack.1'
@@ -612,11 +613,10 @@ function process_burnchain_ops() {
     }
     const op = JSON.parse(row.op)
     if (op.LeaderBlockCommit) {
-      // const stacks_address = getAddressFromPublicKey(op.LeaderBlockCommit.input.public_keys[0].key, TransactionVersion.Testnet) // TODO(psq): make it work for other sig types, breaks with compressed=false
-      const stacks_address = getAddressFromPublicKey(secp256k1.publicKeyConvert(Buffer.from(op.LeaderBlockCommit.input.public_keys[0].key, 'hex'), op.LeaderBlockCommit.input.public_keys[0].compressed).toString('hex'), TransactionVersion.Testnet)
       op.LeaderBlockCommit.burn_header_hash_hex = Buffer.from(op.LeaderBlockCommit.burn_header_hash).toString('hex')
-      op.LeaderBlockCommit.stacks_address = stacks_address
-
+      op.LeaderBlockCommit.public_key = secp256k1.publicKeyConvert(Buffer.from(op.LeaderBlockCommit.input.public_keys[0].key, 'hex'), op.LeaderBlockCommit.input.public_keys[0].compressed).toString('hex')
+      op.LeaderBlockCommit.stacks_address = getAddressFromPublicKey(op.LeaderBlockCommit.public_key, TransactionVersion.Testnet)
+      op.LeaderBlockCommit.btc_address = c32.c32ToB58(op.LeaderBlockCommit.stacks_address)
     }
     burnchain_ops_by_burn_hash[row.block_hash].push(op)
   }
@@ -742,10 +742,10 @@ function process_burnchain_ops() {
 
 
   console.log()
-  console.log("STX address - actual wins/total wins/total mined - % won - % actual wins - burn satoshis")
+  console.log("STX address - actual wins/total wins/total mined - % won - % actual wins - burn satoshis (avg burn)")
   for (let miner_key of Object.keys(miners).sort()) {
     const miner = miners[miner_key]
-    console.log(miner_key, `${miner.actual_win}/${miner.won}/${miner.mined}`, `${(miner.won / miner.mined * 100).toFixed(2)}%`, `${(miner.actual_win / actual_win_total * 100).toFixed(2)}%`, miner.burned)
+    console.log(`${miner_key}-${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.won / miner.mined * 100).toFixed(2)}% ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${miner.burned} (${miner.burned / miner.mined})`)
   }
 
 
