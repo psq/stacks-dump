@@ -772,12 +772,29 @@ function process_burnchain_ops() {
     miner.average_burn = miner.burned / miner.mined
     miner.normalized_wins = miner.won / miner.average_burn
     miner.burn_per_win = miner.burned / miner.won;
+    miner.profit = miner.won * 1000 * 0.15 - (miner.burned / 100000000) * 13000;
   }
 
-  console.log("========================================================================================================================")
-  for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].normalized_wins - miners[a].normalized_wins))) {
-    const miner = miners[miner_key]
-    console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.won / miner.mined * 100).toFixed(2)}% ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% - ${miner.burned} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)
+  console.log(
+    "========================================================================================================================"
+  );
+  for (let miner_key of Object.keys(miners).sort(
+    (a, b) => miners[b].normalized_wins - miners[a].normalized_wins
+  )) {
+    const miner = miners[miner_key];
+    console.log(
+      `${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${
+        miner.won
+      }/${miner.mined} ${((miner.won / miner.mined) * 100).toFixed(2)}% ${(
+        (miner.actual_win / actual_win_total) *
+        100
+      ).toFixed(2)}% - ${miner.burned} - Th[${(
+        (miner.burned / miner.total_burn) *
+        100
+      ).toFixed(2)}%] (${miner.burned / miner.mined}) ${
+        miner.normalized_wins
+      } ${miner.profit}`
+    );
   }
 
   console.log(
