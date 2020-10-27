@@ -801,12 +801,27 @@ function process_burnchain_ops() {
     "========================================================================================================================"
   );
 
+  const burnPerWinFormat = new Intl.NumberFormat("en-US", {
+    style: "decimal",
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+  });
+  const profitFormat = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  });
   for (let miner_key of Object.keys(miners).sort(
     (a, b) => miners[a].burn_per_win - miners[b].burn_per_win
   )) {
     const miner = miners[miner_key];
     console.log(
-      `${miner_key}/${c32.c32ToB58(miner_key)} ${miner.burn_per_win}`
+      `${miner_key.padEnd(41, " ")}/${c32.c32ToB58(
+        miner_key
+      )} ${burnPerWinFormat
+        .format(miner.burn_per_win)
+        .padStart(14, " ")} ${profitFormat
+        .format(miner.profit)
+        .padStart(14, " ")}`
     );
   }
 })();
