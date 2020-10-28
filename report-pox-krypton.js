@@ -783,25 +783,39 @@ function process_burnchain_ops() {
   // }
 
 
+
+
   if (use_txs) {
     console.log("========================================================================================================================")
     console.log("total transactions (excl coinbase)", transaction_count)
   }
-  console.log("========================================================================================================================")
-  console.log("STX address/BTC address - actual wins/total wins/total mined %won %actual wins - paid satoshis Th[theoritical win%] (avg paid)")
-  for (let miner_key of Object.keys(miners).sort()) {
-    const miner = miners[miner_key]
-    console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.won / miner.mined * 100).toFixed(2)}% ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% - ${miner.burned} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined})`)
-    miner.average_burn = miner.burned / miner.mined
-    miner.normalized_wins = miner.won / miner.average_burn
-  }
+  if (use_csv){
+    // display CSV output
+    console.log("========================================================================================================================")
+    console.log("STX address,BTC address,actual wins,total wins,total mined,%won,%actual wins,paid satoshis,Th[theoritical win%],avg paid")
+    for (let miner_key of Object.keys(miners).sort()) {
+      const miner = miners[miner_key]
+      console.log(`${miner_key},${c32.c32ToB58(miner_key)},${miner.actual_win},${miner.won},${miner.mined},${(miner.won / miner.mined * 100).toFixed(2)}%,${(miner.actual_win / actual_win_total * 100).toFixed(2)}%,${miner.burned},Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%],${miner.burned / miner.mined}`)
+      miner.average_burn = miner.burned / miner.mined
+      miner.normalized_wins = miner.won / miner.average_burn
+    }
+  } else {
+    // display console output
+    console.log("========================================================================================================================")
+    console.log("STX address/BTC address - actual wins/total wins/total mined %won %actual wins - paid satoshis Th[theoritical win%] (avg paid)")
+    for (let miner_key of Object.keys(miners).sort()) {
+      const miner = miners[miner_key]
+      console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.won / miner.mined * 100).toFixed(2)}% ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% - ${miner.burned} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined})`)
+      miner.average_burn = miner.burned / miner.mined
+      miner.normalized_wins = miner.won / miner.average_burn
+    }
 
-  console.log("========================================================================================================================")
-  for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].normalized_wins - miners[a].normalized_wins))) {
-    const miner = miners[miner_key]
-    console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.won / miner.mined * 100).toFixed(2)}% ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% - ${miner.burned} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)
+    console.log("========================================================================================================================")
+    for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].normalized_wins - miners[a].normalized_wins))) {
+      const miner = miners[miner_key]
+      console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.won / miner.mined * 100).toFixed(2)}% ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% - ${miner.burned} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)
+    }
   }
-
 
 })()
 
