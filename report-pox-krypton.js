@@ -310,8 +310,31 @@ const staging_db_path = 'chainstate/chain-00000080-testnet/blocks/staging.db'
 //                                            vtxindex INT NOT NULL
 //     );
 
-const data_root_path = `${root}${process.argv[3] || process.argv[2]}`
-const use_txs = process.argv[2] === '-t'
+// const data_root_path = `${root}${process.argv[3] || process.argv[2]}`
+// const use_txs = process.argv[2] === '-t'
+
+let use_txs = false;
+let use_csv = false;
+var myArgs = process.argv.slice(2);
+// console.log('myArgs: ', myArgs);
+
+for (let j = 0; j < myArgs.length; j++){
+  switch (myArgs[j]) {
+    case '-t':
+      use_txs = true;
+      break;
+    case '-csv':
+      use_csv = true;
+      break;
+    default:
+      if (myArgs[j].startsWith('/tmp')) {
+        var data_root_path = `${root}${myArgs[j]}`;
+      } else {
+        console.log('input not recognized: ', myArgs[j]);
+      }
+      break;
+  }
+}
 
 const burnchain_db = new Database(`${data_root_path}/${burnchain_db_path}`, {
   readonly: true,
