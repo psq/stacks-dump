@@ -313,8 +313,8 @@ const staging_db_path = 'chainstate/chain-00000080-testnet/blocks/staging.db'
 // const data_root_path = `${root}${process.argv[3] || process.argv[2]}`
 // const use_txs = process.argv[2] === '-t'
 
-const use_txs = false;
-const use_csv = false;
+let use_txs = false;
+let use_csv = false;
 const my_args = process.argv.slice(2);
 // console.log('my_args: ', my_args);
 
