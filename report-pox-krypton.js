@@ -315,6 +315,7 @@ const staging_db_path = 'chainstate/chain-00000080-testnet/blocks/staging.db'
 
 let use_txs = false;
 let use_csv = false;
+let data_root_path = '';
 const my_args = process.argv.slice(2);
 // console.log('my_args: ', my_args);
 
@@ -330,7 +331,7 @@ for (let j = 0; j < my_args.length; j++){
       break;
     default:
       if (my_args[j].startsWith('/tmp')) {
-        var data_root_path = `${root}${my_args[j]}`;
+        data_root_path = `${root}${my_args[j]}`;
       } else {
         console.log('input not recognized: ', my_args[j]);
       }
