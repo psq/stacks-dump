@@ -313,13 +313,13 @@ const staging_db_path = 'chainstate/chain-00000080-testnet/blocks/staging.db'
 // const data_root_path = `${root}${process.argv[3] || process.argv[2]}`
 // const use_txs = process.argv[2] === '-t'
 
-let use_txs = false;
-let use_csv = false;
-var myArgs = process.argv.slice(2);
-// console.log('myArgs: ', myArgs);
+const use_txs = false;
+const use_csv = false;
+const my_args = process.argv.slice(2);
+// console.log('my_args: ', my_args);
 
-for (let j = 0; j < myArgs.length; j++){
-  switch (myArgs[j]) {
+for (let j = 0; j < my_args.length; j++){
+  switch (my_args[j]) {
     case '-t':
       use_txs = true;
       break;
@@ -327,10 +327,10 @@ for (let j = 0; j < myArgs.length; j++){
       use_csv = true;
       break;
     default:
-      if (myArgs[j].startsWith('/tmp')) {
-        var data_root_path = `${root}${myArgs[j]}`;
+      if (my_args[j].startsWith('/tmp')) {
+        var data_root_path = `${root}${my_args[j]}`;
       } else {
-        console.log('input not recognized: ', myArgs[j]);
+        console.log('input not recognized: ', my_args[j]);
       }
       break;
   }
