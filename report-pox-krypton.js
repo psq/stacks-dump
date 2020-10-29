@@ -321,9 +321,11 @@ const my_args = process.argv.slice(2);
 for (let j = 0; j < my_args.length; j++){
   switch (my_args[j]) {
     case '-t':
+    case '--tx-log':
       use_txs = true;
       break;
-    case '-csv':
+    case '-c':
+    case '--csv':
       use_csv = true;
       break;
     default:
