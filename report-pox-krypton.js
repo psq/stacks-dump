@@ -337,9 +337,7 @@ for (let j = 0; j < my_args.length; j++) {
       break
   }
 }
-console.log('data root path: ', data_root_path)
-
-process.exit(1)
+// console.log('data root path: ', data_root_path)
 
 const burnchain_db = new Database(`${data_root_path}/${burnchain_db_path}`, {
   readonly: true,
