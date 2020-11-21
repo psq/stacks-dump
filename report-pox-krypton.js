@@ -322,7 +322,7 @@ const my_args = process.argv.slice(2)
 if (my_args.length > 1) {
   // iterate through included options
   for (let j = 0; j < my_args.length; j++) {
-    console.log(j, ': ', my_args[j])
+    // console.log(j, ': ', my_args[j])
     switch (my_args[j]) {
       case '-t':
       case '--tx-log':
@@ -341,30 +341,7 @@ if (my_args.length > 1) {
   // assume only working dir was passed
   data_root_path = `${root}${my_args[0]}`
 }
-
-console.log('data root path: ', data_root_path)
-
-process.exit(1)
-
-for (let j = 0; j < my_args.length; j++){
-  switch (my_args[j]) {
-    case '-t':
-    case '--tx-log':
-      use_txs = true;
-      break;
-    case '-c':
-    case '--csv':
-      use_csv = true;
-      break;
-    default:
-      if (my_args[j].startsWith('/tmp')) {
-        data_root_path = `${root}${my_args[j]}`;
-      } else {
-        console.log('input not recognized: ', my_args[j]);
-      }
-      break;
-  }
-}
+// console.log('data root path: ', data_root_path)
 
 const burnchain_db = new Database(`${data_root_path}/${burnchain_db_path}`, {
   readonly: true,
