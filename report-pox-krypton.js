@@ -313,11 +313,38 @@ const staging_db_path = 'chainstate/chain-00000080-testnet/blocks/staging.db'
 // const data_root_path = `${root}${process.argv[3] || process.argv[2]}`
 // const use_txs = process.argv[2] === '-t'
 
-let use_txs = false;
-let use_csv = false;
-let data_root_path = '';
-const my_args = process.argv.slice(2);
+let use_txs = false
+let use_csv = false
+let data_root_path = ''
+const my_args = process.argv.slice(2)
 // console.log('my_args: ', my_args);
+
+if (my_args.length > 1) {
+  // iterate through included options
+  for (let j = 0; j < my_args.length; j++) {
+    console.log(j, ': ', my_args[j])
+    switch (my_args[j]) {
+      case '-t':
+      case '--tx-log':
+        use_txs = true
+        break
+      case '-c':
+      case '--csv':
+        use_csv = true
+        break
+      default:
+        data_root_path = `${root}${my_args[j]}`
+        break
+    }
+  }
+} else {
+  // assume only working dir was passed
+  data_root_path = `${root}${my_args[0]}`
+}
+
+console.log('data root path: ', data_root_path)
+
+process.exit(1)
 
 for (let j = 0; j < my_args.length; j++){
   switch (my_args[j]) {
