@@ -26,8 +26,8 @@ const argon_address = 'ST2TJRHDHMYBQ417HFB0BDX430TQA5PXRX6495G1V'
 const psq_address = 'ST2Z840ZWSF54AFGB1QAEVJ8S8ME7H5BP81C6HJ19'
 
 // TODO(psq): no longer used
-// const burnchain_db_path = 'burnchain/db/bitcoin/regtest/sortition.db/data.db'
-const burnchain_db_path = 'burnchain/db/bitcoin/regtest/burnchain.db'
+// const burnchain_db_path = 'burnchain/db/bitcoin/testnet/sortition.db/data.db'
+const burnchain_db_path = 'burnchain/db/bitcoin/testnet/burnchain.db'
 // CREATE TABLE burnchain_db_block_headers (
 //     block_height INTEGER NOT NULL,
 //     block_hash TEXT UNIQUE NOT NULL,
@@ -46,7 +46,7 @@ const burnchain_db_path = 'burnchain/db/bitcoin/regtest/burnchain.db'
 
 
 
-const sortition_db_path = "burnchain/db/bitcoin/regtest/sortition.db/marf"
+const sortition_db_path = "burnchain/db/bitcoin/testnet/sortition.db/marf"
 // CREATE TABLE marf_data (
 //    block_id INTEGER PRIMARY KEY, 
 //    block_hash TEXT UNIQUE NOT NULL,
