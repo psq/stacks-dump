@@ -2,6 +2,19 @@
 
 Dump information from `stacks-node` storage
 
+
+## Prerequisites
+- Node 14.x
+- yarn
+
+## Installation
+
+```
+git clone git@github.com:psq/stacks-dump.git
+cd stacks-dump
+yarn
+```
+
 ## Usage
 
 Run the script using the current working directory for `stacks-node`, generally found in the `/tmp` folder unless specified via the config file.
