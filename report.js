@@ -658,7 +658,7 @@ function process_burnchain_ops() {
       burnchain_ops_by_burn_hash[row.block_hash] = []
     }
     const op = JSON.parse(row.op)
-    if (op.LeaderBlockCommit) {
+    if (op.LeaderBlockCommit && op.LeaderBlockCommit.apparent_sender) {
       op.LeaderBlockCommit.burn_header_hash_hex = Buffer.from(op.LeaderBlockCommit.burn_header_hash).toString('hex')
       op.LeaderBlockCommit.public_key = secp256k1.publicKeyConvert(Buffer.from(op.LeaderBlockCommit.apparent_sender.public_keys[0].key, 'hex'), op.LeaderBlockCommit.apparent_sender.public_keys[0].compressed).toString('hex')
       op.LeaderBlockCommit.stacks_address = getAddressFromPublicKey(op.LeaderBlockCommit.public_key, TransactionVersion.Testnet)
