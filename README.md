@@ -35,7 +35,7 @@ node report -c /tmp/stacks-testnet-5c87e24790411516
 ```
 
 #### Show transactions
-`-t` or `--tx-log` - display transactions for each block (if `stacks-node` is compiled with `--features tx-log`)
+`-t` or `--tx-log` - display transactions for each block (if `stacks-node` is compiled with `--features tx_log`)
 
 ```
 cargo build --workspace  --features tx_log --bin stacks-node
