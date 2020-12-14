@@ -552,7 +552,11 @@ function process_payments() {
   // console.log("burn_blocks_by_consensus_hash", burn_blocks_by_consensus_hash)
   for (let row of result) {
     // console.log(row.burn_header_hash, row)
-    burn_blocks_by_consensus_hash[row.consensus_hash].payments.push(row)
+    if (burn_blocks_by_consensus_hash[row.consensus_hash]) {
+      burn_blocks_by_consensus_hash[row.consensus_hash].payments.push(row)     
+    } else {
+      console.log("missing consensus hash", row.consensus_hash)
+    }
   }
 }
 
@@ -563,7 +567,11 @@ function process_staging_blocks() {
   // console.log("burn_blocks_by_consensus_hash", burn_blocks_by_consensus_hash)
         for (let row of result) {
           // console.log(row.consensus_hash, row)
-          burn_blocks_by_consensus_hash[row.consensus_hash].staging_blocks.push(row)
+          if (burn_blocks_by_consensus_hash[row.consensus_hash]) {
+            burn_blocks_by_consensus_hash[row.consensus_hash].staging_blocks.push(row)            
+          } else {
+            console.log("missing consensus hash", row.consensus_hash)            
+          }
         }
 }
 
