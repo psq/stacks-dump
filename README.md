@@ -49,3 +49,8 @@ node report -t /tmp/stacks-testnet-5c87e24790411516
 ```
 node report -x /tmp/stacks-testnet-5c87e24790411516
 ```
+
+
+## Support for older versions of Krypton
+i.e. for version 24.0.x.x or 23.x.x.x, use `report-24.0.x.x` instead of `report`.  This will become obsolete very soon, but will be useful for some running the mining challenge on krypton
+
