@@ -34,6 +34,16 @@ node report /tmp/stacks-testnet-5c87e24790411516
 node report -c /tmp/stacks-testnet-5c87e24790411516
 ```
 
+### End block
+`-e BURN_BLOCK_HEIGHT` or `-end-block BURN_BLOCK_HEIGHT`
+Rather than dump all blocks, will stop at BURN_BLOCK_HEIGHT - 1
+
+### Start block
+`-s BURN_BLOCK_HEIGHT` or `-start-block BURN_BLOCK_HEIGHT`
+
+Rather than dump all blocks, will start at BURN_BLOCK_HEIGHT
+
+
 #### Show transactions
 `-t` or `--tx-log` - display transactions for each block (if `stacks-node` is compiled with `--features tx_log`)
 

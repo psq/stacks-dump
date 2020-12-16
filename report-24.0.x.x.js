@@ -22,6 +22,9 @@ import c32 from 'c32check'
 // const root = '/tmp/'
 const root = ''
 
+const argon_address = 'ST2TJRHDHMYBQ417HFB0BDX430TQA5PXRX6495G1V'
+const psq_address = 'ST2Z840ZWSF54AFGB1QAEVJ8S8ME7H5BP81C6HJ19'
+
 // TODO(psq): no longer used
 // const burnchain_db_path = 'burnchain/db/bitcoin/regtest/sortition.db/data.db'
 // CREATE TABLE burnchain_db_block_headers (
@@ -309,8 +312,6 @@ const root = ''
 let target = 'krypton'
 let use_txs = false
 let use_csv = false
-let start_block = 0
-let end_block = 2000000000 // probably high enough
 let data_root_path = ''
 const my_args = process.argv.slice(2)
 // console.log('my_args: ', my_args);
@@ -331,16 +332,6 @@ for (let j = 0; j < my_args.length; j++) {
     case '--xenon':
       target = 'xenon'
       break
-    case '--start-block':
-    case '-s':
-      j++
-      start_block = parseInt(my_args[j])
-      break
-    case '--end-block':
-    case '-e':
-      j++
-      end_block = parseInt(my_args[j])
-      break
     default:
       // assuming last argument is root path
       data_root_path = `${root}${my_args[j]}`
@@ -352,7 +343,7 @@ for (let j = 0; j < my_args.length; j++) {
 const burnchain_db_path = `burnchain/db/bitcoin/${target === 'xenon' ? 'testnet' : 'regtest'}/burnchain.db`
 const sortition_db_path = `burnchain/db/bitcoin/${target === 'xenon' ? 'testnet' : 'regtest'}/sortition.db/marf`
 const vm_db_path = "chainstate/chain-00000080-testnet/vm/index"
-const staging_db_path = "chainstate/chain-00000080-testnet/vm/index";
+const staging_db_path = "chainstate/chain-00000080-testnet/blocks/staging.db";
 
 const burnchain_db = new Database(`${data_root_path}/${burnchain_db_path}`, {
   readonly: true,
@@ -682,10 +673,7 @@ function process_burnchain_ops() {
     } else if (op.LeaderKeyRegister) {
       op.LeaderKeyRegister.stacks_address = c32.c32address(op.LeaderKeyRegister.address.version, op.LeaderKeyRegister.address.bytes)
       // console.log(op.LeaderKeyRegister)
-
-      if (op.LeaderKeyRegister.block_height >= start_block && op.LeaderKeyRegister.block_height < end_block) {
-        console.log(op.LeaderKeyRegister.block_height, op.LeaderKeyRegister.vtxindex, op.LeaderKeyRegister.stacks_address, )
-      }
+      console.log(op.LeaderKeyRegister.block_height, op.LeaderKeyRegister.vtxindex, op.LeaderKeyRegister.stacks_address, )
     }
     burnchain_ops_by_burn_hash[row.block_hash].push(op)
   }
@@ -727,18 +715,13 @@ function process_burnchain_ops() {
   let parent_hash = null
   let parent_winner_address = null
   for (let block of burn_blocks_by_height) {
-    if (block.block_height < start_block) {
-      continue
-    }
-    if (block.block_height >= end_block) {
-      break
-    }
     let at_tip = ' '
     if (block.payments.length && block.payments[0].stacks_block_height > stacks_block_height_max) {
       stacks_block_height_max = block.payments[0].stacks_block_height
       at_tip = '>'
     }
     const current_winner_address = block.block_commits.find(bc => bc.txid === block.winning_block_txid)
+    // const is_argon_or_psq = current_winner_address ? (current_winner_address.leader_key_address === argon_address || current_winner_address.leader_key_address === psq_address) : false
 
     const stacks_block_id = block.block_headers.length ? Sha512Trunc256Sum(Buffer.from(block.block_headers[0].block_hash, 'hex'), Buffer.from(block.block_headers[0].consensus_hash, 'hex')) : '-'
     const txids = block.block_headers.length && use_txs ? `[${transactions_by_stacks_block_id[stacks_block_id].map(tx => tx.txid.substring(0, 10)).join(',')}]` : ''
