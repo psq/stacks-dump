@@ -35,11 +35,11 @@ node report -c /tmp/stacks-testnet-5c87e24790411516
 ```
 
 #### End block
-`-e BURN_BLOCK_HEIGHT` or `-end-block BURN_BLOCK_HEIGHT`
+`-e BURN_BLOCK_HEIGHT` or `--end-block BURN_BLOCK_HEIGHT`
 Rather than dump all blocks, will stop at BURN_BLOCK_HEIGHT - 1
 
 #### Start block
-`-s BURN_BLOCK_HEIGHT` or `-start-block BURN_BLOCK_HEIGHT`
+`-s BURN_BLOCK_HEIGHT` or `--start-block BURN_BLOCK_HEIGHT`
 
 Rather than dump all blocks, will start at BURN_BLOCK_HEIGHT
 
