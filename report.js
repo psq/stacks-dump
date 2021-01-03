@@ -510,7 +510,7 @@ function post_process_miner_stats() {
 
 function process_snapshots() {
   const result = stmt_all_blocks.all()
-  console.log("stmt_all_blocks", result[0])
+  // console.log("stmt_all_blocks", result[0])
   const tip_height = result[0].block_height
 
   if (result[1].block_height === tip_height) {
