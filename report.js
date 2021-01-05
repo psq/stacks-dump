@@ -410,7 +410,7 @@ if (show_nodes) {
 
   console.log("known peer nodes")
   const nodes = stmt_all_peers.all()
-  console.log(nodes)
+  // console.log(nodes)
 
   for (let node of nodes) {
     const addr = Buffer.from(convertToHex(node.addrbytes))
