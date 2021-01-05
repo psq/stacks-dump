@@ -5,6 +5,8 @@ import stacks_transactions from '@blockstack/stacks-transactions'
 const { getAddressFromPublicKey, TransactionVersion } = stacks_transactions
 import secp256k1 from 'secp256k1'
 import c32 from 'c32check'
+import bitcoin from 'bitcoinjs-lib'
+
 
 function numberWithCommas(x) {
     return x.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")
@@ -16,6 +18,34 @@ function adjustSpace(miner_key) {
   }
   return ''
 }
+
+function convertToHex(str) {
+  let count = 0
+  let result = []
+  let value = 0
+  for (let c of str) {
+    value = value << 1 | (c === '1' ? 1 : 0)
+    count++
+    if (count === 8) {
+      result.push(value)
+      count = 0
+    }
+  }
+  return result
+}
+
+function toIPV4(addr) {
+  return `${addr[12]}.${addr[13]}.${addr[14]}.${addr[15]}`
+}
+
+function decompressPubKey(key) {
+  const uncompressed_hex = bitcoin.ECPair.fromPublicKey(
+    Buffer.from(key, 'hex'),
+    { compressed: false },
+  ).publicKey.toString('hex')
+  return uncompressed_hex
+}
+
 
 // const root = '/Users/psq/src/perso/stacks-blockchain/.stack.1'
 // const root = '/Users/psq/src/perso/stacks-blockchain/.stack.2' // week 27
@@ -319,6 +349,7 @@ const root = ''
 let target = 'krypton'
 let use_txs = false
 let use_csv = false
+let show_nodes = false
 let start_block = 0
 let end_block = 2000000000 // probably high enough
 let data_root_path = ''
@@ -332,6 +363,10 @@ for (let j = 0; j < my_args.length; j++) {
     case '-c':
     case '--csv':
       use_csv = true
+      break
+    case '-n':
+    case '--nodes':
+      show_nodes = true
       break
     case '-t':
     case '--tx-log':
@@ -359,10 +394,32 @@ for (let j = 0; j < my_args.length; j++) {
 }
 // console.log('data root path: ', data_root_path)
 
+
+const peer_db_path = `peer_db.sqlite`
 const burnchain_db_path = `burnchain/db/bitcoin/${target === 'xenon' ? 'testnet' : 'regtest'}/burnchain.db`
 const sortition_db_path = `burnchain/db/bitcoin/${target === 'xenon' ? 'testnet' : 'regtest'}/sortition.db/marf`
 const vm_db_path = "chainstate/chain-00000080-testnet/vm/index"
 const staging_db_path = "chainstate/chain-00000080-testnet/vm/index";
+
+if (show_nodes) {
+  const peer_db = new Database(`${data_root_path}/${peer_db_path}`, {
+    readonly: true,
+    fileMustExist: true,
+  })
+  const stmt_all_peers = peer_db.prepare('SELECT * FROM frontier')
+
+  console.log("known peer nodes")
+  const nodes = stmt_all_peers.all()
+  console.log(nodes)
+
+  for (let node of nodes) {
+    const addr = Buffer.from(convertToHex(node.addrbytes))
+    // console.log(addr.toString('hex'), node.public_key)
+    console.log(`${decompressPubKey(node.public_key)}@${toIPV4(addr)}:${node.port}`)
+  }
+  process.exit()
+}
+
 
 const burnchain_db = new Database(`${data_root_path}/${burnchain_db_path}`, {
   readonly: true,
@@ -761,12 +818,6 @@ function process_burnchain_ops() {
     const txids = block.block_headers.length && use_txs && transactions_by_stacks_block_id[stacks_block_id] ? `[${transactions_by_stacks_block_id[stacks_block_id].map(tx => tx.txid.substring(0, 10)).join(',')}]` : ''
 
     console.log(block.block_height,
-      // block.block_commits.map(bc => `${bc.leader_key_address.substring(0, 10)}${bc.txid === block.winning_block_txid ? '*' : ' '}(${bc.key_block_ptr})`).sort((a, b) => a.localeCompare(b)).join(' '),
-      block.block_commits.map(bc => `${bc.leader_key_address.substring(0, 10)}${bc.txid === block.winning_block_txid ? '*' : ' '}`).sort((a, b) => a.localeCompare(b)).join(''),
-      // block.payments.length,
-      // block.staging_blocks.length,
-      // block.stacks_block_height,
-      block.payments.length ? `${block.payments[0].stacks_block_height}${at_tip}` : '',
       block.block_headers.length ? `${block.block_headers[0].block_height}` : '-',
       block.branch_info ? `${block.branch_info.name}${block.on_winning_fork ? '$' : ' '}` : ' ',
       // block.branch_info ? block.branch_info.height_created : '-',
@@ -779,9 +830,8 @@ function process_burnchain_ops() {
       block.block_headers.length ? `${block.block_headers[0].parent_block === parent_hash ? ((parent_winner_address ? parent_winner_address.leader_key_address : null) === (current_winner_address ? current_winner_address.leader_key_address : null) ? '@+' : '@@') : '  '}` : '  ',
       block.actual_burn,
       txids,
-      // (is_argon_or_psq || block.block_headers.length === 0) ? '' : `<================================= ${current_winner_address ? current_winner_address.leader_key_address : 'no winner'}`
-
-      // block.payments.length ? block.payments[0].index_block_hash : '',
+      block.payments.length ? `${block.payments[0].stacks_block_height}${at_tip}` : '',
+      block.block_commits.map(bc => `${bc.leader_key_address.substring(0, 10)}${bc.txid === block.winning_block_txid ? '*' : ' '}`).sort((a, b) => a.localeCompare(b)).join(''),
     )
     parent_winner_address = current_winner_address
     parent_hash = block.block_headers.length ? block.block_headers[0].block_hash : null
