@@ -346,10 +346,11 @@ const root = ''
 // const data_root_path = `${root}${process.argv[3] || process.argv[2]}`
 // const use_txs = process.argv[2] === '-t'
 
-let target = 'krypton'
+let target = 'xenon'
 let use_txs = false
 let use_csv = false
 let show_nodes = false
+let show_distances = false
 let start_block = 0
 let end_block = 2000000000 // probably high enough
 let data_root_path = ''
@@ -364,6 +365,10 @@ for (let j = 0; j < my_args.length; j++) {
     case '--csv':
       use_csv = true
       break
+    case '-d':
+    case '--distances':
+      show_distances = true
+      break
     case '-n':
     case '--nodes':
       show_nodes = true
@@ -371,6 +376,10 @@ for (let j = 0; j < my_args.length; j++) {
     case '-t':
     case '--tx-log':
       use_txs = true
+      break
+    case '-k':
+    case '--krypton':
+      target = 'krypton'
       break
     case '-x':
     case '--xenon':
@@ -448,7 +457,7 @@ const stmt_all_burnchain_ops = burnchain_db.prepare('SELECT * FROM burnchain_db_
 
 // sortition queries
 const stmt_all_blocks = sortition_db.prepare('SELECT * FROM snapshots order by block_height desc')
-const stmt_all_block_commits = sortition_db.prepare('SELECT * FROM block_commits ')
+const stmt_all_block_commits = sortition_db.prepare('SELECT * FROM block_commits')
 const stmt_all_leader_keys = sortition_db.prepare('SELECT * FROM leader_keys')
 
 // header queries
@@ -469,6 +478,10 @@ const stacks_blocks_by_stacks_block_hash = {}
 const transactions_by_stacks_block_id = {}
 const burnchain_blocks_by_burn_hash = {}
 const burnchain_ops_by_burn_hash = {}
+
+const block_commits_parent_distances = []
+let block_commits_parent_distance_count = 0
+
 
 const burn_orphans = []
 const miners = {}
@@ -552,13 +565,15 @@ function post_process_miner_stats() {
             actual_win: 0,
           }
         }
-        const miner = miners[block_commit.leader_key_address]
-        miner.mined++
-        miner.burned += parseInt(block_commit.burn_fee)
-        miner.total_burn += total_burn
-        if (block_commit.txid === block.winning_block_txid) {
-          miner.won++
-          win_total++
+        if (block.block_height >= start_block && block.block_height < end_block) {
+          const miner = miners[block_commit.leader_key_address]
+          miner.mined++
+          miner.burned += parseInt(block_commit.burn_fee)
+          miner.total_burn += total_burn
+          if (block_commit.txid === block.winning_block_txid) {
+            miner.won++
+            win_total++
+          }          
         }
       }      
     }
@@ -579,7 +594,7 @@ function process_snapshots() {
 
   for (let row of result) {
     if (row.pox_valid === 0) {
-      console.log("pox invalid", row.block_height, row.burn_header_hash, parent.parent_burn_header_hash)
+      console.log("pox invalid", row.block_height, row.burn_header_hash, parent && parent.parent_burn_header_hash)
     }
     else if (!parent || row.burn_header_hash === parent.parent_burn_header_hash) {
       burn_blocks_by_height[row.block_height] = row
@@ -619,6 +634,17 @@ function process_block_commits() {
   // console.log("block_commits", result)
   // console.log("process_block_commits.length", result.length)
   for (let row of result) {
+    // console.log("block_commits", row)
+
+    const block_parent_distance = row.block_height - row.parent_block_ptr
+    if (!block_commits_parent_distances[block_parent_distance]) {
+      block_commits_parent_distances[block_parent_distance] = 1
+    } else {
+      block_commits_parent_distances[block_parent_distance]++
+    }
+    block_commits_parent_distance_count++
+
+
     if (burn_blocks_by_burn_header_hash[row.burn_header_hash]) {
       burn_blocks_by_burn_header_hash[row.burn_header_hash].block_commits.push(row)      
     }
@@ -679,9 +705,11 @@ function post_process_winning_fork() {
     burn_block.branch_info.winning_fork = true
     const winning_block_txid = burn_block.winning_block_txid
     const winner = burn_block.block_commits.find(bc => bc.txid === burn_block.winning_block_txid)
-    const winning_miner = miners[winner.leader_key_address]
-    winning_miner.actual_win++
-    actual_win_total++
+    if (burn_block.block_height >= start_block && burn_block.block_height < end_block) {
+      const winning_miner = miners[winner.leader_key_address]
+      winning_miner.actual_win++
+      actual_win_total++
+    }
     // console.log(stacks_block.block_height)
     current_tip = stacks_block.parent_block
   }
@@ -724,10 +752,12 @@ function process_transactions() {
 //     parent_block_hash TEXT NOT NULL,
 //     num_txs INTEGER NOT NULL,
 //     timestamp INTEGER NOT NULL,
+// TODO(psq): not used, remove?  only helpful in case there is a btc fork
 function process_burnchain_blocks() {
   const result = stmt_all_burnchain_headers.all()
   // console.log("process_burnchain_blocks", result)
   for (let burn_block of result) {
+    // console.log("burn_block", burn_block)
     burn_block
   }
 
@@ -792,10 +822,13 @@ function process_burnchain_ops() {
   // }
 
 
+  const block_parent_distances = []
+  let block_parent_distance_count = 0
 
   let stacks_block_height_max = 0
   let parent_hash = null
-  let parent_winner_address = null
+  let parent_winner_block = null
+  let blocks = 0
   for (let block of burn_blocks_by_height) {
     if (!block) {
       continue
@@ -806,18 +839,33 @@ function process_burnchain_ops() {
     if (block.block_height >= end_block) {
       break
     }
+    blocks++
     let at_tip = ' '
     if (block.payments.length && block.payments[0].stacks_block_height > stacks_block_height_max) {
       stacks_block_height_max = block.payments[0].stacks_block_height
       at_tip = '>'
     }
-    const current_winner_address = block.block_commits.find(bc => bc.txid === block.winning_block_txid)
+    const current_winner_block = block.block_commits.find(bc => bc.txid === block.winning_block_txid)
+    const block_parent_distance = current_winner_block ? (block.block_height - current_winner_block.parent_block_ptr) : -1
+    if (block_parent_distance !== -1) {
+      if (!block_parent_distances[block_parent_distance]) {
+        block_parent_distances[block_parent_distance] = 1
+      } else {
+        block_parent_distances[block_parent_distance]++
+      }
+      block_parent_distance_count++
+    }
+
 
     const stacks_block_id = block.block_headers.length ? Sha512Trunc256Sum(Buffer.from(block.block_headers[0].block_hash, 'hex'), Buffer.from(block.block_headers[0].consensus_hash, 'hex')) : '-'
     // console.log("stacks_block_id", block.block_height, stacks_block_id)
     const txids = block.block_headers.length && use_txs && transactions_by_stacks_block_id[stacks_block_id] ? `[${transactions_by_stacks_block_id[stacks_block_id].map(tx => tx.txid.substring(0, 10)).join(',')}]` : ''
 
+    // console.log("current_winner_block", current_winner_block)
     console.log(block.block_height,
+      
+      current_winner_block ? block_parent_distance : '?',
+
       block.block_headers.length ? `${block.block_headers[0].block_height}` : '-',
       block.branch_info ? `${block.branch_info.name}${block.on_winning_fork ? '$' : ' '}` : ' ',
       // block.branch_info ? block.branch_info.height_created : '-',
@@ -825,15 +873,15 @@ function process_burnchain_ops() {
       block.block_headers.length ? `p:${block.block_headers[0].parent_block.substring(0, 10)}` : '-',
       block.block_headers.length ? `c:${block.block_headers[0].consensus_hash.substring(0, 10)}` : '-',
       stacks_block_id !== '-' ? `i:${stacks_block_id.substring(0, 10)}` : '',
-      block.block_headers.length ? `b:${block.block_headers[0].burn_header_hash.substring(0, 10)}` : '-',
+      block.block_headers.length ? `b:${block.block_headers[0].burn_header_hash.substring(0, 20)}` : '-',
 
-      block.block_headers.length ? `${block.block_headers[0].parent_block === parent_hash ? ((parent_winner_address ? parent_winner_address.leader_key_address : null) === (current_winner_address ? current_winner_address.leader_key_address : null) ? '@+' : '@@') : '  '}` : '  ',
+      block.block_headers.length ? `${block.block_headers[0].parent_block === parent_hash ? ((parent_winner_block ? parent_winner_block.leader_key_address : null) === (current_winner_block ? current_winner_block.leader_key_address : null) ? '@+' : '@@') : '  '}` : '  ',
       block.actual_burn,
       txids,
       block.payments.length ? `${block.payments[0].stacks_block_height}${at_tip}` : '',
       block.block_commits.map(bc => `${bc.leader_key_address.substring(0, 10)}${bc.txid === block.winning_block_txid ? '*' : ' '}`).sort((a, b) => a.localeCompare(b)).join(''),
     )
-    parent_winner_address = current_winner_address
+    parent_winner_block = current_winner_block
     parent_hash = block.block_headers.length ? block.block_headers[0].block_hash : null
   }
 
@@ -918,6 +966,26 @@ function process_burnchain_ops() {
     }
     console.log("miner count ========================================================================================================================")
     console.log("miners:", Object.keys(miners).length)
+    console.log("actual_win_total:", actual_win_total)
+    console.log("blocks:", blocks)
+
+    if (show_distances) {
+      console.log("block_parent_distances")
+      for (let index = 0; index < block_parent_distances.length; index++) {
+        const block_parent_distance = block_parent_distances[index]
+        if (block_parent_distance) {
+          console.log(`${index} ${block_parent_distance} ${(block_parent_distance / block_parent_distance_count * 100).toFixed(2)}%`)
+        }
+      }
+      console.log("block_commits_parent_distances")
+      for (let index = 0; index < block_commits_parent_distances.length; index++) {
+        const block_commits_parent_distance = block_commits_parent_distances[index]
+        if (block_commits_parent_distance) {
+          console.log(`${index} ${block_commits_parent_distance} ${(block_commits_parent_distance / block_commits_parent_distance_count * 100).toFixed(2)}%`)
+        }
+      }      
+    }
+
   }
 
 })()
