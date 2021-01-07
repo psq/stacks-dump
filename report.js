@@ -644,7 +644,6 @@ function process_block_commits() {
     }
     block_commits_parent_distance_count++
 
-
     if (burn_blocks_by_burn_header_hash[row.burn_header_hash]) {
       burn_blocks_by_burn_header_hash[row.burn_header_hash].block_commits.push(row)      
     }
