@@ -594,9 +594,8 @@ function process_snapshots() {
 
   for (let row of result) {
     if (row.pox_valid === 0) {
-      console.log("pox invalid", row.block_height, row.burn_header_hash, parent && parent.parent_burn_header_hash)
-    }
-    else if (!parent || row.burn_header_hash === parent.parent_burn_header_hash) {
+      !use_csv && useconsole.log("pox invalid", row.block_height, row.burn_header_hash, parent && parent.parent_burn_header_hash)
+    } else if (!parent || row.burn_header_hash === parent.parent_burn_header_hash) {
       burn_blocks_by_height[row.block_height] = row
       burn_blocks_by_burn_header_hash[row.burn_header_hash] = row
       burn_blocks_by_consensus_hash[row.consensus_hash] = row
@@ -768,8 +767,10 @@ function process_burnchain_blocks() {
 function process_burnchain_ops() {
   const result = stmt_all_burnchain_ops.all()
   // console.log("process_burnchain_ops", result)
-  console.log("========================================================================================================================")
-  console.log("Leader key registrations")
+  if (!use_csv) {
+    console.log("========================================================================================================================")
+    console.log("Leader key registrations")
+  }
   for (let row of result) {
     if (!burnchain_ops_by_burn_hash[row.block_hash]) {
       burnchain_ops_by_burn_hash[row.block_hash] = []
@@ -782,14 +783,14 @@ function process_burnchain_ops() {
       op.LeaderBlockCommit.btc_address = c32.c32ToB58(op.LeaderBlockCommit.stacks_address)
     } else if (op.LeaderKeyRegister) {
       op.LeaderKeyRegister.stacks_address = c32.c32address(op.LeaderKeyRegister.address.version, op.LeaderKeyRegister.address.bytes)
-      if (op.LeaderKeyRegister.block_height >= start_block && op.LeaderKeyRegister.block_height < end_block) {
+      if (!use_csv && op.LeaderKeyRegister.block_height >= start_block && op.LeaderKeyRegister.block_height < end_block) {
         console.log(op.LeaderKeyRegister.block_height, op.LeaderKeyRegister.vtxindex, op.LeaderKeyRegister.stacks_address, )
       }
     }
     burnchain_ops_by_burn_hash[row.block_hash].push(op)
   }
   // console.log("burnchain_ops_by_burn_hash", JSON.stringify(burnchain_ops_by_burn_hash, null, 2))
-  console.log("========================================================================================================================")
+  !use_csv && console.log("========================================================================================================================")
 }
 
 
@@ -861,9 +862,11 @@ function process_burnchain_ops() {
     const txids = block.block_headers.length && use_txs && transactions_by_stacks_block_id[stacks_block_id] ? `[${transactions_by_stacks_block_id[stacks_block_id].map(tx => tx.txid.substring(0, 10)).join(',')}]` : ''
 
     // console.log("current_winner_block", current_winner_block)
-    console.log(block.block_height,
+    !use_csv && console.log(block.block_height,
       
       current_winner_block ? block_parent_distance : '?',
+
+      current_winner_block && current_winner_block.parent_block_ptr,
 
       block.block_headers.length ? `${block.block_headers[0].block_height}` : '-',
       block.branch_info ? `${block.branch_info.name}${block.on_winning_fork ? '$' : ' '}` : ' ',
@@ -933,13 +936,12 @@ function process_burnchain_ops() {
 
 
 
-  if (use_txs) {
+  if (!use_csv && use_txs) {
     console.log("========================================================================================================================")
     console.log("total transactions (excl coinbase)", transaction_count)
   }
   if (use_csv){
     // display CSV output
-    console.log("========================================================================================================================")
     console.log("STX address,BTC address,actual wins,total wins,total mined,%actual wins,%won,paid satoshis,theoritical win%,avg paid")
     for (let miner_key of Object.keys(miners).sort()) {
       const miner = miners[miner_key]
@@ -959,7 +961,7 @@ function process_burnchain_ops() {
     }
 
     console.log("========================================================================================================================")
-    for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].normalized_wins - miners[a].normalized_wins))) {
+    for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].burned / miners[b].mined - miners[a].burned / miners[a].mined))) {
       const miner = miners[miner_key]
       console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)
     }
