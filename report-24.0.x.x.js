@@ -475,9 +475,11 @@ function find_leader_key(block_height, vtxindex) {
 
 function post_process_block_commits() {
   for (let block of burn_blocks_by_height) {
-    for (let block_commit of block.block_commits) {
-      block_commit.leader_key = find_leader_key(block_commit.key_block_ptr, block_commit.key_vtxindex)
-      block_commit.leader_key_address = block_commit.leader_key.address
+    if (block) {
+      for (let block_commit of block.block_commits) {
+        block_commit.leader_key = find_leader_key(block_commit.key_block_ptr, block_commit.key_vtxindex)
+        block_commit.leader_key_address = block_commit.leader_key.address
+      }
     }
   }
 }
@@ -485,28 +487,30 @@ function post_process_block_commits() {
 function post_process_miner_stats() {
   let total_burn_prev = 0
   for (let block of burn_blocks_by_height) {
-    const total_burn = parseInt(block.total_burn) - total_burn_prev
-    block.actual_burn = total_burn
-    total_burn_prev = parseInt(block.total_burn)
-    // console.log(block.block_height, total_burn)
-    for (let block_commit of block.block_commits) {
-      if (!miners[block_commit.leader_key_address]) {
-        miners[block_commit.leader_key_address] = {
-          mined: 0,
-          won: 0,
-          burned: 0,
-          total_burn: 0,
-          paid: 0,
-          actual_win: 0,
+    if (block) {
+      const total_burn = parseInt(block.total_burn) - total_burn_prev
+      block.actual_burn = total_burn
+      total_burn_prev = parseInt(block.total_burn)
+      // console.log(block.block_height, total_burn)
+      for (let block_commit of block.block_commits) {
+        if (!miners[block_commit.leader_key_address]) {
+          miners[block_commit.leader_key_address] = {
+            mined: 0,
+            won: 0,
+            burned: 0,
+            total_burn: 0,
+            paid: 0,
+            actual_win: 0,
+          }
         }
-      }
-      const miner = miners[block_commit.leader_key_address]
-      miner.mined++
-      miner.burned += parseInt(block_commit.burn_fee)
-      miner.total_burn += total_burn
-      if (block_commit.txid === block.winning_block_txid) {
-        miner.won++
-        win_total++
+        const miner = miners[block_commit.leader_key_address]
+        miner.mined++
+        miner.burned += parseInt(block_commit.burn_fee)
+        miner.total_burn += total_burn
+        if (block_commit.txid === block.winning_block_txid) {
+          miner.won++
+          win_total++
+        }
       }
     }
   }
@@ -644,7 +648,7 @@ function post_process_winning_fork() {
 
 function post_process_branches() {
   for (let block of burn_blocks_by_height) {
-    if (block.block_headers.length) {
+    if (block && block.block_headers.length) {
       block.branch_info = branch_from_parent(block.block_headers[0].block_hash, block.block_headers[0].parent_block)
     }
   }
@@ -755,6 +759,9 @@ function process_burnchain_ops() {
   let parent_winner_block = null
   let blocks = 0
   for (let block of burn_blocks_by_height) {
+    if (!block) {
+      continue
+    }
     if (block.block_height < start_block) {
       continue
     }
