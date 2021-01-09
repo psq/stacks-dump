@@ -4,8 +4,8 @@ Dump information from `stacks-node` storage
 
 
 ## Prerequisites
-- Node 14.x
-- yarn
+- Node 14.x (older versions of nodejs. do no support the `import` syntax)
+- yarn (use `npm install -g yarn`, the yarn command in the `cmdtest` package is not the right one)
 
 ## Installation
 
