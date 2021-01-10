@@ -46,20 +46,6 @@ function decompressPubKey(key) {
   return uncompressed_hex
 }
 
-
-// const root = '/Users/psq/src/perso/stacks-blockchain/.stack.1'
-// const root = '/Users/psq/src/perso/stacks-blockchain/.stack.2' // week 27
-// const root = '/Users/psq/src/perso/stacks-blockchain/.stack.3' // week 28
-// const root = '/Users/psq/src/perso/stacks-blockchain/.stack.4'  // week29 1st run
-// const root = '/Users/psq/src/perso/stacks-blockchain/.stack.5'  // week29 2nd run
-// const root = '/Users/psq/src/perso/stacks-blockchain/.stack.phillip'
-// const root = '/Users/psq/src/perso/stacks-blockchain/.stack'
-// const root = '/Users/psq/src/perso/stacks-blockchain/.stackf'
-// const root = '/Users/psq/src/perso/stacks-blockchain/.stackm'
-// const root = '/Users/psq/src/perso/stacks-blockchain/.stackmp'
-
-// const root = '/Users/psq/src/perso/stacks-blockchain/'
-// const root = '/tmp/'
 const root = ''
 
 // TODO(psq): no longer used
@@ -546,6 +532,40 @@ function post_process_block_commits() {
   }
 }
 
+// {
+//   txid: 'c7717ab90a64d48d42463dbe1bc94682900d05f899136397cc2666b2f021f0fc',
+//   vtxindex: 65,
+//   block_height: 1902910,
+//   burn_header_hash: '000000000000001550903abf2e23b53c6ed2827f5883b2f3d83ff599b051e5a3',
+//   sortition_id: 'ac45c3b64474f06a668dcbfedced50480819d90ee0f87f080743f6f060ae40e1',
+//   block_header_hash: '09c6a7e4d7525fd0f9da8c1aa76143814dbbe376a86d9d02b51e3fd24736314f',
+//   new_seed: '626aa8c62a878455e9089303b3eeb2ca3c44b5389abf023c10756315545aba2b',
+//   parent_block_ptr: 1902909,
+//   parent_vtxindex: 6,
+//   key_block_ptr: 1902908,
+//   key_vtxindex: 75,
+//   memo: '00',
+//   commit_outs: '[{"bytes":"0000000000000000000000000000000000000000","version":26}]',
+//   burn_fee: '20000',
+//   sunset_burn: '0',
+//   input: '[[228,101,173,49,83,230,32,142,0,192,169,241,177,100,58,43,188,4,67,251,46,117,85,209,190,194,218,225,21,90,95,191],0]',
+//   apparent_sender: '{"hash_mode":"SerializeP2PKH","num_sigs":1,"public_keys":[{"key":"037499269487e205445c9f306738ac88cd00d3d52e879fafe94503c471b71ca9f7","compressed":true}]}',
+//   burn_parent_modulus: 4,
+//   leader_key: {
+//     txid: '6902b3b0f2fcbc15da90de6a4aedf307a4a2b078fc604f4efcdd74bb2220191c',
+//     vtxindex: 75,
+//     block_height: 1902908,
+//     burn_header_hash: '00000000bd622bf8457e1b6e7b1577473302e02df9c66be9c97c590e483b98b3',
+//     sortition_id: 'fde759d5061d01d635e3ac60fe9e398ffc179a7f23403ab1cb92442de57a23f9',
+//     consensus_hash: '10023bfe3143049263ecc2c062aad9e02271c3dc',
+//     public_key: 'b792196256be76c873a27c4d7e5a1a195c7b50d34bb7bbbe2d5416c453bbdcb6',
+//     memo: '',
+//     address: 'ST26VPDDWD0Q699YCTTHRWDWE9FPJ2K520TH0ECQH'
+//   },
+//   leader_key_address: 'ST26VPDDWD0Q699YCTTHRWDWE9FPJ2K520TH0ECQH'
+// }
+
+
 function post_process_miner_stats() {
   let total_burn_prev = 0
   for (let block of burn_blocks_by_height) {
@@ -557,12 +577,17 @@ function post_process_miner_stats() {
       for (let block_commit of block.block_commits) {
         if (!miners[block_commit.leader_key_address]) {
           miners[block_commit.leader_key_address] = {
+            leader_key_address: block_commit.leader_key_address,
             mined: 0,
             won: 0,
             burned: 0,
             total_burn: 0,
             paid: 0,
             actual_win: 0,
+            distance_sum: 0,
+            distance_count: 0,
+            next_block_commits_distances: 0,
+            next_block_commits_count: 0,
           }
         }
         if (block.block_height >= start_block && block.block_height < end_block) {
@@ -570,9 +595,24 @@ function post_process_miner_stats() {
           miner.mined++
           miner.burned += parseInt(block_commit.burn_fee)
           miner.total_burn += total_burn
+          // console.log(block_commit.block_height, block_commit.parent_block_ptr)
+          if (block_commit.block_height - block_commit.parent_block_ptr < 1000) {
+            miner.distance_sum += block_commit.block_height - block_commit.parent_block_ptr
+            miner.distance_count++            
+          }
           if (block_commit.txid === block.winning_block_txid) {
             miner.won++
             win_total++
+
+            // figure out average commit distance for next block
+            const next_block = burn_blocks_by_height[block.block_height + 1]
+            if (next_block) {
+              console.log(miner.leader_key_address, miner.next_block_commits_distances, miner.next_block_commits_count, next_block.block_commits_distances, next_block.block_commits_count)
+              miner.next_block_commits_distances += next_block.block_commits_distances
+              miner.next_block_commits_count += next_block.block_commits_count
+            } else {
+              console.log("====> block.block_height", block.block_height, miner)
+            }
           }          
         }
       }      
@@ -594,7 +634,7 @@ function process_snapshots() {
 
   for (let row of result) {
     if (row.pox_valid === 0) {
-      !use_csv && useconsole.log("pox invalid", row.block_height, row.burn_header_hash, parent && parent.parent_burn_header_hash)
+      !use_csv && console.log("pox invalid", row.block_height, row.burn_header_hash, parent && parent.parent_burn_header_hash)
     } else if (!parent || row.burn_header_hash === parent.parent_burn_header_hash) {
       burn_blocks_by_height[row.block_height] = row
       burn_blocks_by_burn_header_hash[row.burn_header_hash] = row
@@ -604,6 +644,8 @@ function process_snapshots() {
       row.payments = []
       row.staging_blocks = []
       row.block_headers = []
+      row.block_commits_distances = 0
+      row.block_commits_count = 0
       parent = row
     } else {
       console.log("no match", row.block_height, row.burn_header_hash, parent.parent_burn_header_hash)
@@ -636,6 +678,13 @@ function process_block_commits() {
     // console.log("block_commits", row)
 
     const block_parent_distance = row.block_height - row.parent_block_ptr
+    
+    const block = burn_blocks_by_height[row.block_height]
+    if (block_parent_distance < 1000) {
+      block.block_commits_distances += block_parent_distance
+      block.block_commits_count++  
+    }
+
     if (!block_commits_parent_distances[block_parent_distance]) {
       block_commits_parent_distances[block_parent_distance] = 1
     } else {
@@ -862,10 +911,9 @@ function process_burnchain_ops() {
     const txids = block.block_headers.length && use_txs && transactions_by_stacks_block_id[stacks_block_id] ? `[${transactions_by_stacks_block_id[stacks_block_id].map(tx => tx.txid.substring(0, 10)).join(',')}]` : ''
 
     // console.log("current_winner_block", current_winner_block)
-    !use_csv && console.log(block.block_height,
-      
+    !use_csv && console.log(
+      block.block_height,
       current_winner_block ? block_parent_distance : '?',
-
       current_winner_block && current_winner_block.parent_block_ptr,
 
       block.block_headers.length ? `${block.block_headers[0].block_height}` : '-',
@@ -958,12 +1006,19 @@ function process_burnchain_ops() {
       console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined})`)
       miner.average_burn = miner.burned / miner.mined
       miner.normalized_wins = miner.won / miner.average_burn
+      miner.average_distance = miner.distance_sum / miner.distance_count
+      miner.next_average_distance = miner.next_block_commits_distances / miner.next_block_commits_count
     }
 
     console.log("========================================================================================================================")
     for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].burned / miners[b].mined - miners[a].burned / miners[a].mined))) {
       const miner = miners[miner_key]
       console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)
+    }
+    console.log("========================================================================================================================")
+    for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].won - miners[a].won))) {
+      const miner = miners[miner_key]
+      console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.average_distance.toFixed(2)}  <${!isNaN(miner.next_average_distance) ? miner.next_average_distance.toFixed(2) : '----'}> ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)
     }
     console.log("miner count ========================================================================================================================")
     console.log("miners:", Object.keys(miners).length)
