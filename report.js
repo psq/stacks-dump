@@ -332,7 +332,7 @@ const root = ''
 // const data_root_path = `${root}${process.argv[3] || process.argv[2]}`
 // const use_txs = process.argv[2] === '-t'
 
-let target = 'xenon'
+let target = 'mainnet'
 let use_txs = false
 let use_csv = false
 let show_nodes = false
@@ -367,6 +367,10 @@ for (let j = 0; j < my_args.length; j++) {
     case '--krypton':
       target = 'krypton'
       break
+    case '-m':
+    case '--mainnet':
+      target = 'mainnet'
+      break
     case '-x':
     case '--xenon':
       target = 'xenon'
@@ -391,10 +395,10 @@ for (let j = 0; j < my_args.length; j++) {
 
 
 const peer_db_path = `peer_db.sqlite`
-const burnchain_db_path = `burnchain/db/bitcoin/${target === 'xenon' ? 'testnet' : 'regtest'}/burnchain.db`
-const sortition_db_path = `burnchain/db/bitcoin/${target === 'xenon' ? 'testnet' : 'regtest'}/sortition.db/marf`
-const vm_db_path = "chainstate/chain-00000080-testnet/vm/index"
-const staging_db_path = "chainstate/chain-00000080-testnet/vm/index";
+const burnchain_db_path = `burnchain/db/bitcoin/${target === 'mainnet' ? 'mainnet' : (target === 'xenon' ? 'testnet' : 'regtest')}/burnchain.db`
+const sortition_db_path = `burnchain/db/bitcoin/${target === 'mainnet' ? 'mainnet' : (target === 'xenon' ? 'testnet' : 'regtest')}/sortition.db/marf`
+const vm_db_path = `chainstate/chain-${target === 'mainnet' ? '01000000-mainnet' : '00000080-testnet'}/vm/index`
+const staging_db_path = `chainstate/chain-${target === 'mainnet' ? '01000000-mainnet' : '00000080-testnet'}/vm/index`
 
 if (show_nodes) {
   const peer_db = new Database(`${data_root_path}/${peer_db_path}`, {
@@ -607,11 +611,11 @@ function post_process_miner_stats() {
             // figure out average commit distance for next block
             const next_block = burn_blocks_by_height[block.block_height + 1]
             if (next_block) {
-              console.log(miner.leader_key_address, miner.next_block_commits_distances, miner.next_block_commits_count, next_block.block_commits_distances, next_block.block_commits_count)
+              // console.log(miner.leader_key_address, miner.next_block_commits_distances, miner.next_block_commits_count, next_block.block_commits_distances, next_block.block_commits_count)
               miner.next_block_commits_distances += next_block.block_commits_distances
               miner.next_block_commits_count += next_block.block_commits_count
-            } else {
-              console.log("====> block.block_height", block.block_height, miner)
+            // } else {
+            //   console.log("====> block.block_height", block.block_height, miner)
             }
           }          
         }

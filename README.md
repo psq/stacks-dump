@@ -60,14 +60,21 @@ cargo build --workspace  --features tx_log --bin stacks-node
 node report -t /tmp/stacks-testnet-5c87e24790411516
 ```
 
-#### Dump `krypton` instead of `xenon`
+#### Dump `krypton` instead of `mainnet`
 `-k` or `--krypton` - the internal structure for `krypton` requires this option
 
 ```
 node report -x /tmp/stacks-testnet-5c87e24790411516
 ```
 
-#### Dump `xenon` instead of `krypton`, now the default if not included
+#### Dump `mainnet` data, now the default if not included
+`-m` or `--mainnet` - the internal structure for `mainnet` requires this option
+
+```
+node report -x /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### Dump `xenon` instead of `mainnet`
 `-x` or `--xenon` - the internal structure for `xenon` requires this option
 
 ```
