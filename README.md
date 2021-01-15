@@ -28,6 +28,13 @@ node report /tmp/stacks-testnet-5c87e24790411516
 ### Options
 
 #### Output stats as CSV
+`-a` or `--alpha` - sort by STC address
+
+```
+node report -a /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### Output stats as CSV
 `-c` or `--csv` - display transactions in CSV format
 
 ```

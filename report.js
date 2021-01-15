@@ -335,6 +335,7 @@ const root = ''
 let target = 'mainnet'
 let use_txs = false
 let use_csv = false
+let use_alpha = false
 let show_nodes = false
 let show_distances = false
 let start_block = 0
@@ -347,6 +348,10 @@ const my_args = process.argv.slice(2)
 for (let j = 0; j < my_args.length; j++) {
   // console.log(j, ': ', my_args[j])
   switch (my_args[j]) {
+    case '-a':
+    case '--alpha':
+      use_alpha = true
+      break
     case '-c':
     case '--csv':
       use_csv = true
@@ -1003,26 +1008,35 @@ function process_burnchain_ops() {
     }
   } else {
     // display console output
-    console.log("========================================================================================================================")
-    console.log("STX address/BTC address - actual wins/total wins/total mined %actual wins %won - paid satoshis Th[theoritical win%] (avg paid)")
+
     for (let miner_key of Object.keys(miners).sort()) {
       const miner = miners[miner_key]
-      console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined})`)
       miner.average_burn = miner.burned / miner.mined
-      miner.normalized_wins = miner.won / miner.average_burn
+      // miner.normalized_wins = miner.won / miner.average_burn
       miner.average_distance = miner.distance_sum / miner.distance_count
       miner.next_average_distance = miner.next_block_commits_distances / miner.next_block_commits_count
     }
 
     console.log("========================================================================================================================")
-    for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].burned / miners[b].mined - miners[a].burned / miners[a].mined))) {
-      const miner = miners[miner_key]
-      console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)
+    console.log("STX address/BTC address - actual wins/total wins/total mined %actual wins %won - paid satoshis Th[theoritical win%] (avg paid)")
+    if (use_alpha) {
+      for (let miner_key of Object.keys(miners).sort()) {
+        const miner = miners[miner_key]
+        console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined})`)
+      }      
+    } else {
+      for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].burned / miners[b].mined - miners[a].burned / miners[a].mined))) {
+        const miner = miners[miner_key]
+        console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined})`)
+      }
     }
-    console.log("========================================================================================================================")
-    for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].won - miners[a].won))) {
-      const miner = miners[miner_key]
-      console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.average_distance.toFixed(2)}  <${!isNaN(miner.next_average_distance) ? miner.next_average_distance.toFixed(2) : '----'}> ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)
+
+    if (show_distances) {
+      console.log("========================================================================================================================")
+      for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].won - miners[a].won))) {
+        const miner = miners[miner_key]
+        console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.average_distance.toFixed(2)}  <${!isNaN(miner.next_average_distance) ? miner.next_average_distance.toFixed(2) : '----'}> ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)
+      }
     }
     console.log("miner count ========================================================================================================================")
     console.log("miners:", Object.keys(miners).length)
