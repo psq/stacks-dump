@@ -919,6 +919,9 @@ function process_burnchain_ops() {
     // console.log("stacks_block_id", block.block_height, stacks_block_id)
     const txids = block.block_headers.length && use_txs && transactions_by_stacks_block_id[stacks_block_id] ? `[${transactions_by_stacks_block_id[stacks_block_id].map(tx => tx.txid.substring(0, 10)).join(',')}]` : ''
 
+    const block_burn = block.block_commits.reduce((acc, bc) => (acc + parseInt(bc.burn_fee)), 0)
+    // console.log("block_burn", block_burn)
+    
     // console.log("current_winner_block", current_winner_block)
     !use_csv && console.log(
       block.block_height,
@@ -938,7 +941,7 @@ function process_burnchain_ops() {
       block.actual_burn,
       txids,
       block.payments.length ? `${block.payments[0].stacks_block_height}${at_tip}` : '',
-      block.block_commits.map(bc => `${bc.leader_key_address.substring(0, 10)}${bc.txid === block.winning_block_txid ? '*' : ' '}`).sort((a, b) => a.localeCompare(b)).join(''),
+      block.block_commits.map(bc => `[${(parseInt(bc.burn_fee) / block_burn * 100).toFixed(1)}]${bc.leader_key_address.substring(0, 10)}${bc.txid === block.winning_block_txid ? '*' : ' '}`).sort((a, b) => a.localeCompare(b)).join(''),
     )
     parent_winner_block = current_winner_block
     parent_hash = block.block_headers.length ? block.block_headers[0].block_hash : null
