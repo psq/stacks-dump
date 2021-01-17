@@ -976,7 +976,7 @@ function process_burnchain_ops() {
       current_winner_block ? block_parent_distance : '?',
       current_winner_block && current_winner_block.parent_block_ptr,
 
-      block.block_headers.length ? `${block.block_headers[0].block_height}` : '-',
+      // block.block_headers.length ? `${block.block_headers[0].block_height}` : '-',
       block.payments.length ? `${block.payments[0].stacks_block_height}${at_tip}` : '',
       block.payments.length ? `${numberWithCommas(parseInt(block.payments[0].coinbase) / 1000000, 2)}` : '',
       numberWithCommas(block.actual_burn, 0),
