@@ -1067,7 +1067,7 @@ function process_burnchain_ops() {
     }
 
     if (tips.length > 1) {
-      console.log(`>>> WARNING: there are currently ${tips.length} forks of equal length suitable to continue as the canonical forks`)
+      console.log(`>>> WARNING: there are currently ${tips.length} forks of equal length suitable to continue as the canonical fork`)
     }
 
     console.log("Miner Statistics ==================================================================================================================")
