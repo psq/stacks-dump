@@ -3,8 +3,13 @@
 Dump information from `stacks-node` storage for the [Stacks blockchain](https://github.com/blockstack/stacks-blockchain).
 
 ## Prerequisites
-- Node 14.x, or newer (older versions of nodejs. do no support the `import` syntax)
-- yarn (use `npm install -g yarn`, the yarn command in the `cmdtest` package is not the right one)
+
+- Git distributed version control system
+  (see [install page](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) for your OS)
+- Node 14.x, or newer
+  (older versions of NodeJS do not support the `import` syntax)
+- Yarn package manager
+  (use `npm install -g yarn`, the yarn command in the `cmdtest` package is not the right one)
 
 ## Installation
 
