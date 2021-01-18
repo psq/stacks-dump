@@ -338,6 +338,7 @@ let use_csv = false
 let use_alpha = false
 let show_nodes = false
 let show_distances = false
+let show_registrations = false
 let start_block = 0
 let end_block = 2000000000 // probably high enough
 let data_root_path = ''
@@ -360,35 +361,39 @@ for (let j = 0; j < my_args.length; j++) {
     case '--distances':
       show_distances = true
       break
-    case '-n':
-    case '--nodes':
-      show_nodes = true
-      break
-    case '-t':
-    case '--tx-log':
-      use_txs = true
+    case '--end-block':
+    case '-e':
+      j++
+      end_block = parseInt(my_args[j])
       break
     case '-k':
     case '--krypton':
       target = 'krypton'
       break
+    case '-n':
+    case '--nodes':
+      show_nodes = true
+      break
     case '-m':
     case '--mainnet':
       target = 'mainnet'
       break
-    case '-x':
-    case '--xenon':
-      target = 'xenon'
-      break
-    case '--start-block':
     case '-s':
+    case '--start-block':
       j++
       start_block = parseInt(my_args[j])
       break
-    case '--end-block':
-    case '-e':
-      j++
-      end_block = parseInt(my_args[j])
+    case '-r':
+    case '--key-registration':
+      show_registrations = true
+      break
+    case '-t':
+    case '--tx-log':
+      use_txs = true
+      break
+    case '-x':
+    case '--xenon':
+      target = 'xenon'
       break
     default:
       // assuming last argument is root path
@@ -860,7 +865,7 @@ function process_burnchain_blocks() {
 function process_burnchain_ops() {
   const result = stmt_all_burnchain_ops.all()
   // console.log("process_burnchain_ops", result)
-  if (!use_csv) {
+  if (!use_csv && show_registrations) {
     console.log("Leader key registrations ==========================================================================================================")
   }
   for (let row of result) {
@@ -875,7 +880,7 @@ function process_burnchain_ops() {
       op.LeaderBlockCommit.btc_address = c32.c32ToB58(op.LeaderBlockCommit.stacks_address)
     } else if (op.LeaderKeyRegister) {
       op.LeaderKeyRegister.stacks_address = c32.c32address(op.LeaderKeyRegister.address.version, op.LeaderKeyRegister.address.bytes)
-      if (!use_csv && op.LeaderKeyRegister.block_height >= start_block && op.LeaderKeyRegister.block_height < end_block) {
+      if (!use_csv && show_registrations && op.LeaderKeyRegister.block_height >= start_block && op.LeaderKeyRegister.block_height < end_block) {
         console.log(op.LeaderKeyRegister.block_height, op.LeaderKeyRegister.vtxindex, op.LeaderKeyRegister.stacks_address, )
       }
     }
