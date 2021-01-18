@@ -1077,7 +1077,7 @@ function process_burnchain_ops() {
     }
 
     console.log("Miner Statistics ==================================================================================================================")
-    console.log("STX address/BTC address - actual wins/total wins/total mined %actual wins %won - paid satoshis Th[theoritical win%] (avg paid)")
+    console.log("STX address/BTC address - actual wins/total wins/total mined %actual wins %won - paid satoshis Th[theoritical win%] (avg paid - last paid)")
     if (use_alpha) {
       for (let miner_key of Object.keys(miners).sort()) {
         const miner = miners[miner_key]
