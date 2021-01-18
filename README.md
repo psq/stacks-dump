@@ -108,65 +108,65 @@ Here's an exerpt from the log
 
 Looking at the second line, value by value
 
-#### 666493
+#### → 666493
 
 the btc block height
 
-#### 1
+#### → 1
 
 the distance from parent block as specified by the miner
 
-#### 666492
+#### → 666492
 
 the height of the parent btc block that contains the parent stacks block
 
-#### 332>
+#### → 332>
 
 the stacks block height, if `>` is added, this stacks block is on the canonical fork, or the fork with the most blocks
 
-#### 2,466.40
+#### → 2,466.40
 
 the block reward, in STX
 
-#### 946,802
+#### → 946,802
 
 the total amount of satoshiss committed by miners which commit was accepted (there are many commits that get rejected because the commit did not go into the intended btc block)
 
-#### br22
+#### → br22
 
 the branch name (starts with `br1`, helps track possibly long forks)
 
-#### s:9c996f05a4
+#### → s:9c996f05a4
 
 the hash of the stacks block (first 10 characters, to save space, usually enough to make it unique, but not directly usable in https://explorer.stacks.co/ (hint, hint!), btc hash uses 20 because the current difficulty will require most leading digits (hexgits anyone?) to be zeros)
 
-#### p:372efd817c
+#### → p:372efd817c
 
 the hash of the parent stacks block
 
-#### c:fa02bfafe3
+#### → c:fa02bfafe3
 
 the consensus block hash (this is guaranteed to be unique, only helpful to devs)
 
-#### i:3e89a91656
+#### → i:3e89a91656
 
 the index block hash (this is the hash of the block hash and consensus hash of the burn block that selected it, and is guaranteed to be globally unique (across all Stacks forks and across all PoX forks). index_block_hash is the block hash fed into the MARF index.  This is only helpful to devs)
 
-#### b:000000000000000000077d8bb
+#### → b:000000000000000000077d8bb
 
 the hash of the btc block
 
-#### @+
+#### → @+
 
 - `  `: this block is not a child of the previous block
 - `@@`: this block is a child of the previous block
 - `@+`: this block is a child of the previous block, by the same miner
 
-#### [b9c9963e2c,0cbfddb722,d2b5a98101,15ecacc154,b05e520101,5b76498b68,dae355b11f,a742702c09,5c189343c0,b0363a71db,c03cd8df2a,33ed0f5b05,ce4c046ed2,8d71c99955,a0fd611841,2822effe34,d7e97e28d6,cabd74ccb8,09722ba9b3,c87e8040ab,784bf6f6f0,be1e10
+#### → [b9c9963e2c,0cbfddb722,d2b5a98101,15ecacc154,b05e520101,5b76498b68,dae355b11f,a742702c09,5c189343c0,b0363a71db,c03cd8df2a,33ed0f5b05,ce4c046ed2,8d71c99955,a0fd611841,2822effe34,d7e97e28d6,cabd74ccb8,09722ba9b3,c87e8040ab,784bf6f6f0,be1e10
 6b10,0d07dc3d66,3bf64e5df9,5fde28a809,c0ba62cf56,cfb2b86c05,5feac45aac,0c9cc378c2,4c456e8e01]
 the transaction hashes included in the block (using `-t` flag)
 
-#### [10.6]SP32SQ2729 [15.8]SP3S9C931D [2.1]SP270Y0ZEB [2.1]SP4F3EX8B7 [2.4]SP3F0CDFN2 [21.1]SP1RJH1641 [26.4]SP137NZXD0*[3.1]SPY1PP2KZ6 [7.9]SP334VW9T9 [8.4]SP25Y6NQXB 
+#### → [10.6]SP32SQ2729 [15.8]SP3S9C931D [2.1]SP270Y0ZEB [2.1]SP4F3EX8B7 [2.4]SP3F0CDFN2 [21.1]SP1RJH1641 [26.4]SP137NZXD0*[3.1]SPY1PP2KZ6 [7.9]SP334VW9T9 [8.4]SP25Y6NQXB 
 
 the list of miner with an accepted commit, number between square bracket is the raw probability of winning (excluding 6 block median smoothing), followed by the first 10 characters of the STX address of the miner, followed by either ` ` or `*`.  A `*` shows the miner that won the block.
 
