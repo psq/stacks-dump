@@ -35,9 +35,9 @@ node report /tmp/stacks-testnet-5c87e24790411516
 
 ### Options
 
-#### Output stats as CSV
+#### Output stats sorted alpha
 
-`-a` or `--alpha` - sort by STC address
+`-a` or `--alpha` - sort by STX address
 
 ```bash
 node report -a /tmp/stacks-testnet-5c87e24790411516
@@ -85,7 +85,7 @@ node report -t /tmp/stacks-testnet-5c87e24790411516
 `-k` or `--krypton` - the internal structure for `krypton` requires this option
 
 ```bash
-node report -x /tmp/stacks-testnet-5c87e24790411516
+node report -k /tmp/stacks-testnet-5c87e24790411516
 ```
 
 #### Dump `mainnet` data, now the default if not included
@@ -93,7 +93,7 @@ node report -x /tmp/stacks-testnet-5c87e24790411516
 `-m` or `--mainnet` - the internal structure for `mainnet` requires this option
 
 ```bash
-node report -x /tmp/stacks-testnet-5c87e24790411516
+node report -m /tmp/stacks-testnet-5c87e24790411516
 ```
 
 #### Dump `xenon` instead of `mainnet`
@@ -105,6 +105,7 @@ node report -x /tmp/stacks-testnet-5c87e24790411516
 ```
 
 #### List all known stacks-nodes
+
 `-n` or `--nodes` - display list of nodes
 
 ```bash
