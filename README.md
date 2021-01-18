@@ -1,7 +1,6 @@
 # stacks-dump
 
-Dump information from `stacks-node` storage
-
+Dump information from `stacks-node` storage for the [Stacks blockchain](https://github.com/blockstack/stacks-blockchain).
 
 ## Prerequisites
 - Node 14.x, or newer (older versions of nodejs. do no support the `import` syntax)
