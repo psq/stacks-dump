@@ -25,9 +25,11 @@ yarn
 
 Run the script using the current working directory for `stacks-node`, generally found in the `/tmp` folder unless specified via the config file.
 
+In the commands below, an example folder of `/tmp/stacks-testnet-5c87e24790411516` will be used.
+
 ### Default
 
-```
+```bash
 node report /tmp/stacks-testnet-5c87e24790411516
 ```
 
