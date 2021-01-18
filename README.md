@@ -13,11 +13,13 @@ Dump information from `stacks-node` storage for the [Stacks blockchain](https://
 
 ## Installation
 
-```
+```bash
 git clone git@github.com:psq/stacks-dump.git
 cd stacks-dump
 yarn
 ```
+
+*Note: If you do not have SSH configured with git, then use the HTTPS link when cloning.*
 
 ## Usage
 
