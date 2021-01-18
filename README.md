@@ -36,69 +36,78 @@ node report /tmp/stacks-testnet-5c87e24790411516
 ### Options
 
 #### Output stats as CSV
+
 `-a` or `--alpha` - sort by STC address
 
-```
+```bash
 node report -a /tmp/stacks-testnet-5c87e24790411516
 ```
 
 #### Output stats as CSV
+
 `-c` or `--csv` - display transactions in CSV format
 
-```
+```bash
 node report -c /tmp/stacks-testnet-5c87e24790411516
 ```
 
 #### Output block commit distances
+
 `-d` or `--distances` - display block commit distance to latest btc block
 
-```
+```bash
 node report -d /tmp/stacks-testnet-5c87e24790411516
 ```
 
 #### End block
+
 `-e BURN_BLOCK_HEIGHT` or `--end-block BURN_BLOCK_HEIGHT`
 Rather than dump all blocks, will stop at BURN_BLOCK_HEIGHT - 1
 
 #### Start block
+
 `-s BURN_BLOCK_HEIGHT` or `--start-block BURN_BLOCK_HEIGHT`
 
 Rather than dump all blocks, will start at BURN_BLOCK_HEIGHT
 
-
 #### Show transactions
+
 `-t` or `--tx-log` - display transactions for each block (if `stacks-node` is compiled with `--features tx_log`)
 
-```
+```bash
 cargo build --workspace  --features tx_log --bin stacks-node
 
 node report -t /tmp/stacks-testnet-5c87e24790411516
 ```
 
 #### Dump `krypton` instead of `mainnet`
+
 `-k` or `--krypton` - the internal structure for `krypton` requires this option
 
-```
+```bash
 node report -x /tmp/stacks-testnet-5c87e24790411516
 ```
 
 #### Dump `mainnet` data, now the default if not included
+
 `-m` or `--mainnet` - the internal structure for `mainnet` requires this option
 
-```
+```bash
 node report -x /tmp/stacks-testnet-5c87e24790411516
 ```
 
 #### Dump `xenon` instead of `mainnet`
+
 `-x` or `--xenon` - the internal structure for `xenon` requires this option
 
-```
+```bash
 node report -x /tmp/stacks-testnet-5c87e24790411516
 ```
 
 #### List all known stacks-nodes
 `-n` or `--nodes` - display list of nodes
-```
+
+```bash
 node report -n /tmp/stacks-testnet-5c87e24790411516
 ```
 
