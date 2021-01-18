@@ -975,7 +975,7 @@ function process_burnchain_ops() {
     !use_csv && console.log(
       block.block_height,
       current_winner_block ? block_parent_distance : '?',
-      current_winner_block && current_winner_block.parent_block_ptr,
+      current_winner_block && current_winner_block.parent_block_ptr ? current_winner_block.parent_block_ptr : '',
 
       // block.block_headers.length ? `${block.block_headers[0].block_height}` : '-',
       block.payments.length ? `${block.payments[0].stacks_block_height}${at_tip}` : '',
