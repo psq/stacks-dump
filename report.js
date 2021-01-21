@@ -1,4 +1,47 @@
-// const Database = require('better-sqlite3')
+const truck = () => {
+  console.log("**************************************************************************************************************")
+  console.log("*                                                                                                            *")
+  console.log("*                                                                                                            *")
+  console.log("*                                                                                                            *")
+  console.log("*                     .,;;;;'.  .:cccc:,.                                                                    *")
+  console.log("*                   ,ll:;,,;clool;'...':llc::::;.        ..                                                  *")
+  console.log("*                 .co'       .'.         ..   .:l,..,;::::o:                                                 *")
+  console.log("*              ..,ld.                        .':do:;,..  .lo.                                                *")
+  console.log("*           .;cc:;;'                   ..,;;:;;'.    .;:cc;.                                                 *")
+  console.log("*          'oc.                   .';;::;,..      .;c:,'.                                                    *")
+  console.log("*         .oc               ..,::::;:dx:          .o:                                                        *")
+  console.log("*         'd;          .';:::;,..   lNX:           ,l'                                                       *")
+  console.log("*         .oc    ..,:::::oxd:.     .OWk. ...        :l.    ;c::::::::::::::::::::::;,.                       *")
+  console.log("*          :xc;::::;'.   .l0NKd;.  cNWOox0Kk'       .c:.  .ol                       ';cc'                    *")
+  console.log("*        .clOKl.           .;xXN0ocOWNKkdc;'.        .ld; .o:  .,,,,,,'.  ';;;;;;;,.  'oc.                   *")
+  console.log("*        co.cKd.          ':lkXNXOdl:,'',cok0l.       ,oo'.o:  cd;''':x; .xo,,,,,,;:c, .cl.                  *")
+  console.log("*        co.;xx:         ,k0kdc;''';ldOXX0xo:.         .:l,o:  cl.   .o: .d;        .l:  ;o,                 *")
+  console.log("*        co.;o:o;         .'',cokKNXxo0WNk:.            .ooo:  cl.   .o: .d;         .lc. 'o:                *")
+  console.log("*        :o.;o.;o'         l0K0xxXMO' .;dKN0o'      .,;:cc;o:  cl.   .o: .d;          .cl. .cc.              *")
+  console.log("*        ;o.;o. cl.        .,.. ;KNl     .:ddc'';::::;'.. .o:  cl.   .o: .d;            ;o'  :l'             *")
+  console.log("*        ;d';o. .lc            .dW0'     .,:::::,..       .o:  co.   'd: .d:.           .:d;  ,l;            *")
+  console.log("*        ;o.,l.  .o;           .dxc.';::::;'.             .o:  ,olccclo' .cocccccccccccccldo.  .l:.          *")
+  console.log("*        ,d''l.   ;d:,',,,,,,,,:ldkkkxo:;,',,,,,,,,,,'',,,:x:                                   .:l.         *")
+  console.log("*        'd,,o.   .dx:;;;;;;;;;;:::;;;;;;;;;;;;;;;;;;;;;;;;;.                                     :l.        *")
+  console.log("*        'd,,d'   .ol                                                                             .l;        *")
+  console.log("*        .xolo.   .ol                                                                              lc        *")
+  console.log("*         ,c,.    .ol                                                                              ll        *")
+  console.log("*                 .ol                                               .,;,,,,,,'.                    ll        *")
+  console.log("*                 .ol                                            .;:::ccllccc:::.       .,,,,,,,,,:xl        *")
+  console.log("*                 .ol     .,,,,,,.      .,,,,,,.                ,l::ll:;;;;:cl:;l;     .oo,,,,,,,,ckl        *")
+  console.log("*                 .ol  .;ccloloolc:'  ':clooooocc,             ,l;lo,.;::::;.'ll;l:    .d:        .oc        *")
+  console.log("*                  lo..ll:loo  oolcl::ocloo  oooco:.          .occd..l:.  .;l'.olcd,...,xc........'d:        *")
+  console.log("*                  .;;::;ol:    :lo:cc;oo:    clo::;,,,,,,,,,,:c,lo.,o'    .l; cl,cc:::cll::::::::::.        *")
+  console.log("*                       .ol;o  o;lo.  .lo:o  o:co.               ,o,.:l;..,c:..o;                            *")
+  console.log("*                        .cccllccc.    .:cclllcc.                 ,l:..,;;,..,l;                             *")
+  console.log("*                          .;;;;.        .;;;;.                    .,:;;;,;;:;.                              *")
+  console.log("*                                                                                                            *")
+  console.log("*                                                                                                            *")
+  console.log("*                                                                                                            *")
+  console.log("**************************************************************************************************************")
+}
+
+
 import sha512 from 'js-sha512'
 import Database from 'better-sqlite3'
 import stacks_transactions from '@blockstack/stacks-transactions'
@@ -337,6 +380,8 @@ let use_txs = false
 let use_csv = false
 let use_alpha = false
 let show_nodes = false
+let show_paths = false
+let show_logo = true
 let show_distances = false
 let show_registrations = false
 let start_block = 0
@@ -370,6 +415,10 @@ for (let j = 0; j < my_args.length; j++) {
     case '--krypton':
       target = 'krypton'
       break
+    case '-l':
+    case '--no-logo':
+      show_logo = false
+      break
     case '-n':
     case '--nodes':
       show_nodes = true
@@ -377,6 +426,14 @@ for (let j = 0; j < my_args.length; j++) {
     case '-m':
     case '--mainnet':
       target = 'mainnet'
+      break
+    case '-o':
+    case '--mocknet':
+      target = 'mocknet'
+      break
+    case '-p':
+    case '--paths':
+      show_paths = true
       break
     case '-s':
     case '--start-block':
@@ -405,10 +462,22 @@ for (let j = 0; j < my_args.length; j++) {
 
 
 const peer_db_path = `peer_db.sqlite`
-const burnchain_db_path = `burnchain/db/bitcoin/${target === 'mainnet' ? 'mainnet' : (target === 'xenon' ? 'testnet' : 'regtest')}/burnchain.db`
-const sortition_db_path = `burnchain/db/bitcoin/${target === 'mainnet' ? 'mainnet' : (target === 'xenon' ? 'testnet' : 'regtest')}/sortition.db/marf`
+const burnchain_db_path = `burnchain/db/bitcoin/${target === 'mainnet' ? 'mainnet' : (target === 'xenon' ? 'testnet' : (target === 'mocknet' ? 'mocknet' : 'regtest'))}/burnchain.db`
+const sortition_db_path = `burnchain/db/bitcoin/${target === 'mainnet' ? 'mainnet' : (target === 'xenon' ? 'testnet' : (target === 'mocknet' ? 'mocknet' : 'regtest'))}/sortition.db/marf`
 const vm_db_path = `chainstate/chain-${target === 'mainnet' ? '01000000-mainnet' : '00000080-testnet'}/vm/index`
 const staging_db_path = `chainstate/chain-${target === 'mainnet' ? '01000000-mainnet' : '00000080-testnet'}/vm/index`
+
+if (show_logo) {
+  truck()
+  console.log()
+}
+
+if (show_paths) {
+  console.log("burnchain_db_path", burnchain_db_path)
+  console.log("sortition_db_path", sortition_db_path)
+  console.log("vm_db_path", vm_db_path)
+  console.log("staging_db_path", staging_db_path)
+}
 
 if (show_nodes) {
   const peer_db = new Database(`${data_root_path}/${peer_db_path}`, {
@@ -631,6 +700,7 @@ function post_process_miner_stats() {
             total_burn: 0,
             paid: 0,
             actual_win: 0,
+            rewards: 0,
             distance_sum: 0,
             distance_count: 0,
             next_block_commits_distances: 0,
@@ -804,6 +874,7 @@ function post_process_winning_fork() {
     if (burn_block.block_height >= start_block && burn_block.block_height < end_block) {
       const winning_miner = miners[winner.leader_key_address]
       winning_miner.actual_win++
+      winning_miner.rewards += burn_block.payments.length ? parseInt(burn_block.payments[0].coinbase) : 0
       actual_win_total++
     }
     // console.log(stacks_block.block_height)
@@ -1054,10 +1125,10 @@ function process_burnchain_ops() {
 
   if (use_csv){
     // display CSV output
-    console.log("STX address,BTC address,actual wins,total wins,total mined,%actual wins,%won,paid satoshis,theoritical win%,avg paid")
+    console.log("STX address,BTC address,actual wins,total wins,total mined,%actual wins,%won,paid satoshis,theoritical win%,avg paid,last paid,rewards")
     for (let miner_key of Object.keys(miners).sort()) {
       const miner = miners[miner_key]
-      console.log(`${miner_key},${c32.c32ToB58(miner_key)},${miner.actual_win},${miner.won},${miner.mined},${(miner.actual_win / actual_win_total * 100).toFixed(2)}%,${(miner.won / miner.mined * 100).toFixed(2)}%,${miner.burned},${(miner.burned / miner.total_burn * 100).toFixed(2)}%,${miner.burned / miner.mined}`)
+      console.log(`${miner_key},${c32.c32ToB58(miner_key)},${miner.actual_win},${miner.won},${miner.mined},${(miner.actual_win / actual_win_total * 100).toFixed(2)}%,${(miner.won / miner.mined * 100).toFixed(2)}%,${miner.burned},${(miner.burned / miner.total_burn * 100).toFixed(2)}%,${miner.burned / miner.mined},${miner.last_commit},${miner.rewards/1000000}`)
       miner.average_burn = miner.burned / miner.mined
       miner.normalized_wins = miner.won / miner.average_burn
     }
@@ -1077,16 +1148,16 @@ function process_burnchain_ops() {
     }
 
     console.log("Miner Statistics ==================================================================================================================")
-    console.log("STX address/BTC address - actual wins/total wins/total mined %actual wins %won - paid satoshis Th[theoritical win%] (avg paid - last paid)")
+    console.log("STX address/BTC address - actual wins/total wins/total mined %actual wins %won - paid satoshis Th[theoritical win%] (avg paid - last paid) => rewards")
     if (use_alpha) {
       for (let miner_key of Object.keys(miners).sort()) {
         const miner = miners[miner_key]
-        console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined} - ${miner.last_commit})`)
+        console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)}`)
       }      
     } else {
-      for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].burned / miners[b].mined - miners[a].burned / miners[a].mined))) {
+      for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].last_commit - miners[a].last_commit))) {
         const miner = miners[miner_key]
-        console.log(`${last_block - miner.last_block < 4 ? '$' : ' '} ${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / miner.mined * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined} - ${miner.last_commit})`)
+        console.log(`${last_block - miner.last_block < 4 ? '$' : ' '} ${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / miner.mined * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)}`)
       }
     }
 
