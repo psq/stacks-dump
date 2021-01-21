@@ -1,3 +1,5 @@
+![Image of Yaktocat](https://github.com/psq/stacks-dump/raw/master/stacks-dump-truck-dark.png)
+
 # stacks-dump
 
 Dump information from `stacks-node` storage for the [Stacks blockchain](https://github.com/blockstack/stacks-blockchain).
