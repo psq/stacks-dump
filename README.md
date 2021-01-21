@@ -23,6 +23,21 @@ yarn
 
 *Note: If you do not have SSH configured with git, then use the HTTPS link when cloning.*
 
+### Using Docker
+
+To build the docker image, run:
+
+```bash
+docker build . --tag blockdaemon/stacks-dump:latest
+```
+
+To use, make sure that the stacks data directory is mounted into the container:
+
+```bash
+docker run -v /tmp/stacks-testnet-5c87e24790411516:/data -ti stacks-dump:latest /data
+```
+
+
 ## Usage
 
 Run the script using the current working directory for `stacks-node`, generally found in the `/tmp` folder unless specified via the config file.
