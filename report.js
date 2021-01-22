@@ -641,6 +641,7 @@ function post_process_miner_stats() {
             paid: 0,
             actual_win: 0,
             rewards: 0,
+            matured_rewards: 0,
             distance_sum: 0,
             distance_count: 0,
             next_block_commits_distances: 0,
@@ -804,8 +805,12 @@ function post_process_winning_fork() {
 
   // console.log(highest_branch)
   let current_tip = highest_branch.tip
+  let stacks_chain_height = 0
   while (current_tip !== '0000000000000000000000000000000000000000000000000000000000000000') {
     const stacks_block = stacks_blocks_by_stacks_block_hash[current_tip]
+    if (stacks_chain_height === 0) {
+      stacks_chain_height = stacks_block.block_height
+    }
     const burn_block = burn_blocks_by_burn_header_hash[stacks_block.burn_header_hash]
     burn_block.on_winning_fork = true
     burn_block.branch_info.winning_fork = true
@@ -815,6 +820,9 @@ function post_process_winning_fork() {
       const winning_miner = miners[winner.leader_key_address]
       winning_miner.actual_win++
       winning_miner.rewards += burn_block.payments.length ? parseInt(burn_block.payments[0].coinbase) : 0
+      if (stacks_block.block_height + 100 <= stacks_chain_height) {
+        winning_miner.matured_rewards += burn_block.payments.length ? parseInt(burn_block.payments[0].coinbase) : 0        
+      }
       actual_win_total++
     }
     // console.log(stacks_block.block_height)
@@ -997,7 +1005,7 @@ function process_burnchain_ops() {
 
       block.block_headers.length ? `${block.block_headers[0].parent_block === parent_hash ? ((parent_winner_block ? parent_winner_block.leader_key_address : null) === (current_winner_block ? current_winner_block.leader_key_address : null) ? '@+' : '@@') : '  '}` : '  ',
       txids,
-      block.block_commits.map(bc => `[${(parseInt(bc.burn_fee) / block_burn * 100).toFixed(1)}]${bc.leader_key_address.substring(0, 10)}${bc.txid === block.winning_block_txid ? '*' : ' '}`).sort((a, b) => a.localeCompare(b)).join(''),
+      block.block_commits.sort((a, b) => (a.leader_key_address.localeCompare(b.leader_key_address))).map(bc => `[${(parseInt(bc.burn_fee) / block_burn * 100).toFixed(1)}]${bc.leader_key_address.substring(0, 10)}${bc.txid === block.winning_block_txid ? '*' : ' '}`).join(''),
     )
     // console.log(block.payments)
     miner_count_last_block = block.block_commits.length
@@ -1009,10 +1017,10 @@ function process_burnchain_ops() {
 
   if (use_csv) {
     // display CSV output
-    console.log("STX address,BTC address,actual wins,total wins,total mined,%actual wins,%won,paid satoshis,theoritical win%,avg paid,last paid,rewards")
+    console.log("STX address,BTC address,actual wins,total wins,total mined,%actual wins,%won,paid satoshis,theoritical win%,avg paid,last paid,rewards,matured rewards")
     for (let miner_key of Object.keys(miners).sort()) {
       const miner = miners[miner_key]
-      console.log(`${miner_key},${c32.c32ToB58(miner_key)},${miner.actual_win},${miner.won},${miner.mined},${(miner.actual_win / actual_win_total * 100).toFixed(2)}%,${(miner.won / miner.mined * 100).toFixed(2)}%,${miner.burned},${(miner.burned / miner.total_burn * 100).toFixed(2)}%,${miner.burned / miner.mined},${miner.last_commit},${miner.rewards/1000000}`)
+      console.log(`${miner_key},${c32.c32ToB58(miner_key)},${miner.actual_win},${miner.won},${miner.mined},${(miner.actual_win / actual_win_total * 100).toFixed(2)}%,${(miner.won / miner.mined * 100).toFixed(2)}%,${miner.burned},${(miner.burned / miner.total_burn * 100).toFixed(2)}%,${miner.burned / miner.mined},${miner.last_commit},${miner.rewards/1000000},${miner.matured_rewards/1000000}`)
       miner.average_burn = miner.burned / miner.mined
       miner.normalized_wins = miner.won / miner.average_burn
     }
@@ -1032,16 +1040,16 @@ function process_burnchain_ops() {
     }
 
     console.log("Miner Statistics ==================================================================================================================")
-    console.log("STX address/BTC address - actual wins/total wins/total mined %actual wins %won - paid satoshis Th[theoritical win%] (avg paid - last paid) => rewards")
+    console.log("STX address/BTC address - actual wins/total wins/total mined %actual wins %won - paid satoshis Th[theoritical win%] (avg paid - last paid) => rewards = matured rewards + pending rewards")
     if (use_alpha) {
       for (let miner_key of Object.keys(miners).sort()) {
         const miner = miners[miner_key]
-        console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)}`)
+        console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)} = ${numberWithCommas(miner.matured_rewards / 1000000, 2)} + ${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`)
       }      
     } else {
       for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].last_commit - miners[a].last_commit))) {
         const miner = miners[miner_key]
-        console.log(`${last_block - miner.last_block < 4 ? '$' : ' '} ${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / miner.mined * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)}`)
+        console.log(`${last_block - miner.last_block < 4 ? '$' : ' '} ${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / miner.mined * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)} = ${numberWithCommas(miner.matured_rewards / 1000000, 2)} + ${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`)
       }
     }
 
