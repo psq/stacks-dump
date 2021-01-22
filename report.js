@@ -388,7 +388,6 @@ let start_block = 0
 let end_block = 2000000000 // probably high enough
 let data_root_path = ''
 const my_args = process.argv.slice(2)
-// console.log('my_args: ', my_args);
 
 // iterate through included options
 for (let j = 0; j < my_args.length; j++) {
@@ -458,8 +457,6 @@ for (let j = 0; j < my_args.length; j++) {
       break
   }
 }
-// console.log('data root path: ', data_root_path)
-
 
 const peer_db_path = `peer_db.sqlite`
 const burnchain_db_path = `burnchain/db/bitcoin/${target === 'mainnet' ? 'mainnet' : (target === 'xenon' ? 'testnet' : (target === 'mocknet' ? 'mocknet' : 'regtest'))}/burnchain.db`
@@ -540,29 +537,6 @@ const stmt_all_staging_blocks = staging_db.prepare('SELECT * FROM staging_blocks
 const stmt_all_transactions = use_txs ? headers_db.prepare('SELECT * FROM transactions') : null
 
 let tips = null
-
-// tips [
-//   {
-//     tip: '19731bc06e2edc89fc3d4be54eb00330ac84ae709426ddfbbd374c651be9c3f7',
-//     name: 'br22',
-//     index: 22,
-//     height_created: 258,
-//     seen: 6,
-//     last_seen: 264,
-//     depth: 264
-//   },
-//   {
-//     tip: '81a4dbb427ea6912b11758f58d11059c431992edba02e5dd25cdd4b5891167d2',
-//     name: 'br24',
-//     index: 24,
-//     height_created: 263,
-//     seen: 1,
-//     last_seen: 264,
-//     depth: 264
-//   }
-// ]
-
-
 let transaction_count = 0
 const burn_blocks_by_height = []
 const burn_blocks_by_burn_header_hash = {}
@@ -647,40 +621,6 @@ function post_process_block_commits() {
     }
   }
 }
-
-// {
-//   txid: 'c7717ab90a64d48d42463dbe1bc94682900d05f899136397cc2666b2f021f0fc',
-//   vtxindex: 65,
-//   block_height: 1902910,
-//   burn_header_hash: '000000000000001550903abf2e23b53c6ed2827f5883b2f3d83ff599b051e5a3',
-//   sortition_id: 'ac45c3b64474f06a668dcbfedced50480819d90ee0f87f080743f6f060ae40e1',
-//   block_header_hash: '09c6a7e4d7525fd0f9da8c1aa76143814dbbe376a86d9d02b51e3fd24736314f',
-//   new_seed: '626aa8c62a878455e9089303b3eeb2ca3c44b5389abf023c10756315545aba2b',
-//   parent_block_ptr: 1902909,
-//   parent_vtxindex: 6,
-//   key_block_ptr: 1902908,
-//   key_vtxindex: 75,
-//   memo: '00',
-//   commit_outs: '[{"bytes":"0000000000000000000000000000000000000000","version":26}]',
-//   burn_fee: '20000',
-//   sunset_burn: '0',
-//   input: '[[228,101,173,49,83,230,32,142,0,192,169,241,177,100,58,43,188,4,67,251,46,117,85,209,190,194,218,225,21,90,95,191],0]',
-//   apparent_sender: '{"hash_mode":"SerializeP2PKH","num_sigs":1,"public_keys":[{"key":"037499269487e205445c9f306738ac88cd00d3d52e879fafe94503c471b71ca9f7","compressed":true}]}',
-//   burn_parent_modulus: 4,
-//   leader_key: {
-//     txid: '6902b3b0f2fcbc15da90de6a4aedf307a4a2b078fc604f4efcdd74bb2220191c',
-//     vtxindex: 75,
-//     block_height: 1902908,
-//     burn_header_hash: '00000000bd622bf8457e1b6e7b1577473302e02df9c66be9c97c590e483b98b3',
-//     sortition_id: 'fde759d5061d01d635e3ac60fe9e398ffc179a7f23403ab1cb92442de57a23f9',
-//     consensus_hash: '10023bfe3143049263ecc2c062aad9e02271c3dc',
-//     public_key: 'b792196256be76c873a27c4d7e5a1a195c7b50d34bb7bbbe2d5416c453bbdcb6',
-//     memo: '',
-//     address: 'ST26VPDDWD0Q699YCTTHRWDWE9FPJ2K520TH0ECQH'
-//   },
-//   leader_key_address: 'ST26VPDDWD0Q699YCTTHRWDWE9FPJ2K520TH0ECQH'
-// }
-
 
 function post_process_miner_stats() {
   let total_burn_prev = 0
@@ -957,7 +897,6 @@ function process_burnchain_ops() {
     }
     burnchain_ops_by_burn_hash[row.block_hash].push(op)
   }
-  // console.log("burnchain_ops_by_burn_hash", JSON.stringify(burnchain_ops_by_burn_hash, null, 2))
   !use_csv && console.log("Blocks ============================================================================================================================")
 }
 
@@ -965,7 +904,6 @@ function process_burnchain_ops() {
 (async () => {
   process_burnchain_blocks()
   process_burnchain_ops()
-  // process.exit()
   process_snapshots()
   process_leader_keys()
   process_block_commits()
@@ -981,14 +919,6 @@ function process_burnchain_ops() {
   post_process_miner_stats()
   post_process_branches()
   post_process_winning_fork()
-
-  // console.log("burn_blocks_by_height", burn_blocks_by_height)
-  // console.log("burn_blocks_by_burn_header_hash", burn_blocks_by_burn_header_hash)
-
-  // for (let key of Object.keys(burn_blocks_by_burn_header_hash)) {
-  //   console.log(burn_blocks_by_burn_header_hash[key])
-  // }
-
 
   const block_parent_distances = []
   let block_parent_distance_count = 0
@@ -1077,53 +1007,7 @@ function process_burnchain_ops() {
     parent_hash = block.block_headers.length ? block.block_headers[0].block_hash : null
   }
 
-  // console.log("no leaders", burn_blocks_by_height.filter(b => b.leader_keys.length === 0).map(b => b.block_height))
-  // console.log("no commits", burn_blocks_by_height.filter(b => b.block_commits.length === 0).map(b => b.block_height))
-
-  // console.log()
-  // console.log("fork list, by height")
-  // console.log("fork name - # used - last seen - height - forked_from")
-  // const sorted_branches_by_height = branches.sort((a, b) => a.depth - b.depth)
-  // for (let branch_info of sorted_branches_by_height) {
-  //   console.log(`${branch_info.name}${branch_info.winning_fork ? '$' : ''}`, branch_info.seen, branch_info.last_seen,  branch_info.depth, branch_info.height_created)
-  // }
-
-  // console.log()
-  // console.log("fork list, by length, longer than 5")
-  // const sorted_branches_by_length = branches.sort((a, b) => a.seen - b.seen).filter(b => b.seen > 5)
-  // for (let branch_info of sorted_branches_by_length) {
-  //   console.log(`${branch_info.name}${branch_info.winning_fork ? '$' : ''}`, branch_info.seen, branch_info.last_seen,  branch_info.depth, branch_info.height_created)
-  // }
-
-
-  // const all_branches_by_stacks_block_height = []
-  // console.log()
-  // console.log("forks by stacks block")
-  // for (let stacks_block of Object.keys(stacks_blocks_by_stacks_block_hash).map(k => stacks_blocks_by_stacks_block_hash[k])) {
-  //   if (!all_branches_by_stacks_block_height[stacks_block.block_height]) {
-  //     all_branches_by_stacks_block_height[stacks_block.block_height] = []
-  //   }
-  //   all_branches_by_stacks_block_height[stacks_block.block_height].push(stacks_block)
-  // }
-  // // console.log(all_branches_by_stacks_block_height)
-  // for (let height_data of all_branches_by_stacks_block_height) {
-  //   if (height_data) {
-  //     // console.log(height_data)
-  //     const burn_blocks = height_data.map(b => burn_blocks_by_burn_header_hash[b.burn_header_hash]).sort((a, b) => {
-  //       if (a.on_winning_fork) {
-  //         return -1
-  //       }
-  //       if (b.on_winning_fork) {
-  //         return 1
-  //       }
-  //       return a.branch_info.index - b.branch_info.index
-  //     })
-  //     // console.log(burn_blocks)
-  //     console.log(height_data[0].block_height, burn_blocks.map(b => `${b.branch_info.name}${b.on_winning_fork ? '$' : ''}`).join(', '))
-  //   }
-  // }
-
-  if (use_csv){
+  if (use_csv) {
     // display CSV output
     console.log("STX address,BTC address,actual wins,total wins,total mined,%actual wins,%won,paid satoshis,theoritical win%,avg paid,last paid,rewards")
     for (let miner_key of Object.keys(miners).sort()) {
@@ -1201,6 +1085,3 @@ function process_burnchain_ops() {
   }
 
 })()
-
-
-// ST2Z840ZWSF54AFGB1QAEVJ8S8ME7H5BP81C6HJ19
