@@ -37,7 +37,6 @@ To use, make sure that the stacks data directory is mounted into the container:
 docker run -v /tmp/stacks-testnet-5c87e24790411516:/data -ti stacks-dump:latest /data
 ```
 
-
 ## Usage
 
 Run the script using the current working directory for `stacks-node`, generally found in the `/tmp` folder unless specified via the config file.
@@ -46,11 +45,15 @@ In the commands below, an example folder of `/tmp/stacks-testnet-5c87e2479041151
 
 ### Default
 
+By default, the output will contain the block details, miner statistics, and total statistics.
+
 ```bash
 node report /tmp/stacks-testnet-5c87e24790411516
 ```
 
 ### Options
+
+There are several options to modify the behavior and output of stacks-dump, and multiple options can be combined depending on your use case.
 
 #### Output stats sorted alpha
 
@@ -60,13 +63,19 @@ node report /tmp/stacks-testnet-5c87e24790411516
 node report -a /tmp/stacks-testnet-5c87e24790411516
 ```
 
-#### Output stats as CSV
+#### Skip output of block data
 
-`-c` or `--csv` - display transactions in CSV format
+`-b` or `--no-blocks` - do not display individual block data
+
+#### Output stats in CSV format
+
+`-c` or `--csv` - display miner statistics in CSV format
 
 ```bash
 node report -c /tmp/stacks-testnet-5c87e24790411516
 ```
+
+*Note: only shows miner statistics, implies `-b` and `-g`*
 
 #### Output block commit distances
 
@@ -80,6 +89,10 @@ node report -d /tmp/stacks-testnet-5c87e24790411516
 
 `-e BURN_BLOCK_HEIGHT` or `--end-block BURN_BLOCK_HEIGHT`
 Rather than dump all blocks, will stop at BURN_BLOCK_HEIGHT - 1
+
+#### Skip output of totals
+
+`-g` or `--no-totals` - do not display total statistics
 
 #### Start block
 
