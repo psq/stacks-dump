@@ -91,8 +91,11 @@ node report -d /tmp/stacks-testnet-5c87e24790411516
 
 #### End block
 
-`-e BURN_BLOCK_HEIGHT` or `--end-block BURN_BLOCK_HEIGHT`
-Rather than dump all blocks, will stop at BURN_BLOCK_HEIGHT - 1
+`-e BURN_BLOCK_HEIGHT` or `--end-block BURN_BLOCK_HEIGHT` - rather than dump all blocks, will stop at `BURN_BLOCK_HEIGHT - 1`
+
+```bash
+node report -e 667300 /tmp/stacks-testnet-5c87e24790411516
+```
 
 #### Skip output of totals
 
@@ -104,9 +107,11 @@ node report -g /tmp/stacks-testnet-5c87e24790411516
 
 #### Start block
 
-`-s BURN_BLOCK_HEIGHT` or `--start-block BURN_BLOCK_HEIGHT`
+`-s BURN_BLOCK_HEIGHT` or `--start-block BURN_BLOCK_HEIGHT` - rather than dump all blocks, will start at `BURN_BLOCK_HEIGHT`
 
-Rather than dump all blocks, will start at BURN_BLOCK_HEIGHT
+```bash
+node report -s 665250 /tmp/stacks-testnet-5c87e24790411516
+```
 
 #### Show transactions
 
