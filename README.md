@@ -113,6 +113,14 @@ node report -g /tmp/stacks-testnet-5c87e24790411516
 node report -k /tmp/stacks-testnet-5c87e24790411516
 ```
 
+#### Skip output of stacks-dump logo
+
+`-l` or `--no-logo` - do not display the stacks-dump logo
+
+```bash
+node report -l /tmp/stacks-testnet-5c87e24790411516
+```
+
 #### Dump `mainnet` data, now the default if not included
 
 `-m` or `--mainnet` - the internal structure for `mainnet` requires this option
@@ -127,6 +135,30 @@ node report -m /tmp/stacks-testnet-5c87e24790411516
 
 ```bash
 node report -n /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### Dump `mocknet` instead of `mainnet`
+
+`-o` or `--mocknet` - the internal structure for `mocknet` requires this option
+
+```bash
+node report -o /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### Show paths
+
+`-p` or `--show-paths` - show the paths to the burnchain, sortition, vm, and staging databases
+
+```bash
+node report -p /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### Show leader key registrations
+
+`-r` or `--key-registration` - show leader key registrations
+
+```bash
+node report -r /tmp/stacks-testnet-5c87e24790411516
 ```
 
 #### Start block
