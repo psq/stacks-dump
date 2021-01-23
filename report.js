@@ -377,13 +377,13 @@ const root = ''
 // const use_txs = process.argv[2] === '-t'
 
 let target = 'mainnet'
-let use_txs = false
-let use_csv = false
 let use_alpha = false
+let use_csv = false
+let use_txs = false
+let show_distances = false
+let show_logo = true
 let show_nodes = false
 let show_paths = false
-let show_logo = true
-let show_distances = false
 let show_registrations = false
 let start_block = 0
 let end_block = 2000000000 // probably high enough
