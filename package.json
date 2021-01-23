@@ -1,5 +1,10 @@
 {
   "type": "module",
+  "exports": {
+    ".": "./lib/index.js",
+    "./src": "./src/index.js",
+    "./src/*": "./src/*.js"
+  },
   "dependencies": {
     "@blockstack/stacks-transactions": "^0.7.0",
     "@stacks/blockchain-api-client": "^0.19.0",

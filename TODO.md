@@ -1,6 +1,6 @@
 TODO
-- document miner output
-- make key registration optional
+- consider using cli-tableau for block output (recently active miners only?)
+
 
 DONE
 + show empty block count
@@ -9,3 +9,6 @@ DONE
 + actual win % would be more useful per miner rather than global
 + last commit / miner
 + document block output
++ document miner output
++ make key registration optional
++ use cli-tableau for table ouput
