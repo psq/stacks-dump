@@ -105,6 +105,30 @@ node report -e 667300 /tmp/stacks-testnet-5c87e24790411516
 node report -g /tmp/stacks-testnet-5c87e24790411516
 ```
 
+#### Dump `krypton` instead of `mainnet`
+
+`-k` or `--krypton` - the internal structure for `krypton` requires this option
+
+```bash
+node report -k /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### Dump `mainnet` data, now the default if not included
+
+`-m` or `--mainnet` - the internal structure for `mainnet` requires this option
+
+```bash
+node report -m /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### List all known stacks-nodes
+
+`-n` or `--nodes` - display list of nodes
+
+```bash
+node report -n /tmp/stacks-testnet-5c87e24790411516
+```
+
 #### Start block
 
 `-s BURN_BLOCK_HEIGHT` or `--start-block BURN_BLOCK_HEIGHT` - rather than dump all blocks, will start at `BURN_BLOCK_HEIGHT`
@@ -123,36 +147,12 @@ cargo build --workspace  --features tx_log --bin stacks-node
 node report -t /tmp/stacks-testnet-5c87e24790411516
 ```
 
-#### Dump `krypton` instead of `mainnet`
-
-`-k` or `--krypton` - the internal structure for `krypton` requires this option
-
-```bash
-node report -k /tmp/stacks-testnet-5c87e24790411516
-```
-
-#### Dump `mainnet` data, now the default if not included
-
-`-m` or `--mainnet` - the internal structure for `mainnet` requires this option
-
-```bash
-node report -m /tmp/stacks-testnet-5c87e24790411516
-```
-
 #### Dump `xenon` instead of `mainnet`
 
 `-x` or `--xenon` - the internal structure for `xenon` requires this option
 
 ```bash
 node report -x /tmp/stacks-testnet-5c87e24790411516
-```
-
-#### List all known stacks-nodes
-
-`-n` or `--nodes` - display list of nodes
-
-```bash
-node report -n /tmp/stacks-testnet-5c87e24790411516
 ```
 
 ## Block information
