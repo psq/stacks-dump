@@ -67,6 +67,10 @@ node report -a /tmp/stacks-testnet-5c87e24790411516
 
 `-b` or `--no-blocks` - do not display individual block data
 
+```bash
+node report -b /tmp/stacks-testnet-5c87e24790411516
+```
+
 #### Output stats in CSV format
 
 `-c` or `--csv` - display miner statistics in CSV format
@@ -93,6 +97,10 @@ Rather than dump all blocks, will stop at BURN_BLOCK_HEIGHT - 1
 #### Skip output of totals
 
 `-g` or `--no-totals` - do not display total statistics
+
+```bash
+node report -g /tmp/stacks-testnet-5c87e24790411516
+```
 
 #### Start block
 
