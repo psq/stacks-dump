@@ -49,6 +49,7 @@ import secp256k1 from 'secp256k1'
 import c32 from 'c32check'
 import bitcoin from 'bitcoinjs-lib'
 import { Table } from './src/cli-tableau.js'
+import chalk from 'chalk'
 
 
 function numberWithCommas(x, decimals) {
@@ -994,7 +995,7 @@ function process_burnchain_ops() {
       // block.block_headers.length ? `${block.block_headers[0].block_height}` : '-',
       block.payments.length ? `${block.payments[0].stacks_block_height}${at_tip}` : '     ',
       block.payments.length ? `${numberWithCommas(parseInt(block.payments[0].coinbase) / 1000000, 2)}` : '   -    ',
-      block.actual_burn !== 0 ? numberWithCommas(block.actual_burn, 0) : '        0',
+      block.actual_burn !== 0 ? numberWithCommas(block.actual_burn, 0) : '    -    ',
       block.branch_info ? `${fixedBranchName(block.branch_info.name)}` : '    ',
       // block.branch_info ? block.branch_info.height_created : '-',
       block.block_headers.length ? `s:${block.block_headers[0].block_hash.substring(0, 10)}` : '     -      ',
@@ -1005,7 +1006,7 @@ function process_burnchain_ops() {
 
       block.block_headers.length ? `${block.block_headers[0].parent_block === parent_hash ? ((parent_winner_block ? parent_winner_block.leader_key_address : null) === (current_winner_block ? current_winner_block.leader_key_address : null) ? '@+' : '@@') : '  '}` : '  ',
       txids,
-      block.block_commits.sort((a, b) => (a.leader_key_address.localeCompare(b.leader_key_address))).map(bc => `[${(parseInt(bc.burn_fee) / block_burn * 100).toFixed(1)}]${bc.leader_key_address.substring(0, 10)}${bc.txid === block.winning_block_txid ? '*' : ' '}`).join(''),
+      block.block_commits.sort((a, b) => (a.leader_key_address.localeCompare(b.leader_key_address))).map(bc => `[${(parseInt(bc.burn_fee) / block_burn * 100).toFixed(1)}]${bc.txid === block.winning_block_txid ? (chalk.green(bc.leader_key_address.substring(0, 10) + '*')) : (bc.leader_key_address.substring(0, 10) + ' ')}`).join(''),
     )
     // console.log(block.payments)
     miner_count_last_block = block.block_commits.length
