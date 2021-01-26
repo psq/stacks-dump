@@ -1,6 +1,6 @@
 TODO
 - consider using cli-tableau for block output (recently active miners only?)
-
+- show tx_fees_anchored + tx_fees_streamed
 
 DONE
 + show empty block count

@@ -989,19 +989,19 @@ function process_burnchain_ops() {
     !use_csv && console.log(
       block.block_height,
       current_winner_block ? block_parent_distance : '?',
-      current_winner_block && current_winner_block.parent_block_ptr ? current_winner_block.parent_block_ptr : '',
+      current_winner_block && current_winner_block.parent_block_ptr ? current_winner_block.parent_block_ptr : '   -  ',
 
       // block.block_headers.length ? `${block.block_headers[0].block_height}` : '-',
-      block.payments.length ? `${block.payments[0].stacks_block_height}${at_tip}` : '',
-      block.payments.length ? `${numberWithCommas(parseInt(block.payments[0].coinbase) / 1000000, 2)}` : '',
-      numberWithCommas(block.actual_burn, 0),
-      block.branch_info ? `${fixedBranchName(block.branch_info.name)}` : ' ',
+      block.payments.length ? `${block.payments[0].stacks_block_height}${at_tip}` : '     ',
+      block.payments.length ? `${numberWithCommas(parseInt(block.payments[0].coinbase) / 1000000, 2)}` : '   -    ',
+      block.actual_burn !== 0 ? numberWithCommas(block.actual_burn, 0) : '        0',
+      block.branch_info ? `${fixedBranchName(block.branch_info.name)}` : '    ',
       // block.branch_info ? block.branch_info.height_created : '-',
-      block.block_headers.length ? `s:${block.block_headers[0].block_hash.substring(0, 10)}` : '-',
-      block.block_headers.length ? `p:${block.block_headers[0].parent_block.substring(0, 10)}` : '-',
-      block.block_headers.length ? `c:${block.block_headers[0].consensus_hash.substring(0, 10)}` : '-',
-      stacks_block_id !== '-' ? `i:${stacks_block_id.substring(0, 10)}` : '',
-      block.block_headers.length ? `b:${block.block_headers[0].burn_header_hash.substring(0, 25)}` : '-',
+      block.block_headers.length ? `s:${block.block_headers[0].block_hash.substring(0, 10)}` : '     -      ',
+      block.block_headers.length ? `p:${block.block_headers[0].parent_block.substring(0, 10)}` : '     -      ',
+      block.block_headers.length ? `c:${block.block_headers[0].consensus_hash.substring(0, 10)}` : '     -      ',
+      stacks_block_id !== '-' ? `i:${stacks_block_id.substring(0, 10)}` : '     -      ',
+      block.block_headers.length ? `b:${block.block_headers[0].burn_header_hash.substring(0, 25)}` : '            -              ',
 
       block.block_headers.length ? `${block.block_headers[0].parent_block === parent_hash ? ((parent_winner_block ? parent_winner_block.leader_key_address : null) === (current_winner_block ? current_winner_block.leader_key_address : null) ? '@+' : '@@') : '  '}` : '  ',
       txids,
@@ -1018,16 +1018,18 @@ function process_burnchain_ops() {
   if (use_csv) {
     // display CSV output
     console.log("STX address,BTC address,actual wins,total wins,total mined,%actual wins,%won,paid satoshis,theoritical win%,avg paid,last paid,rewards,matured rewards")
-    for (let miner_key of Object.keys(miners).sort()) {
+    for (let miner_key of Object.keys(miners).filter(miner => miners[miner].mined > 0).sort()) {
       const miner = miners[miner_key]
-      console.log(`${miner_key},${c32.c32ToB58(miner_key)},${miner.actual_win},${miner.won},${miner.mined},${(miner.actual_win / actual_win_total * 100).toFixed(2)}%,${(miner.won / miner.mined * 100).toFixed(2)}%,${miner.burned},${(miner.burned / miner.total_burn * 100).toFixed(2)}%,${miner.burned / miner.mined},${miner.last_commit},${miner.rewards/1000000},${miner.matured_rewards/1000000}`)
+      if (miner.mined > 0) {
+        console.log(`${miner_key},${c32.c32ToB58(miner_key)},${miner.actual_win},${miner.won},${miner.mined},${(miner.actual_win / actual_win_total * 100).toFixed(2)}%,${(miner.won / miner.mined * 100).toFixed(2)}%,${miner.burned},${(miner.burned / miner.total_burn * 100).toFixed(2)}%,${miner.burned / miner.mined},${miner.last_commit},${miner.rewards/1000000},${miner.matured_rewards/1000000}`)        
+      }
       miner.average_burn = miner.burned / miner.mined
       miner.normalized_wins = miner.won / miner.average_burn
     }
   } else {
     // display console output
 
-    for (let miner_key of Object.keys(miners).sort()) {
+    for (let miner_key of Object.keys(miners)) {
       const miner = miners[miner_key]
       miner.average_burn = miner.burned / miner.mined
       // miner.normalized_wins = miner.won / miner.average_burn
@@ -1096,45 +1098,49 @@ function process_burnchain_ops() {
       // ],
     })
     if (use_alpha) {
-      for (let miner_key of Object.keys(miners).sort()) {
+      for (let miner_key of Object.keys(miners).filter(miner => miners[miner].mined > 0).sort()) {
         const miner = miners[miner_key]
         // console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${(miner.burned / miner.mined).toFixed(0)} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)} = ${numberWithCommas(miner.matured_rewards / 1000000, 2)} + ${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`)
-        table.push([
-          `${last_block - miner.last_block < 4 ? '$' : ' '}`,
-          `${miner_key}`,
-          `${c32.c32ToB58(miner_key)}`,
-          `${miner.actual_win}/${miner.won}/${miner.mined}`,
-          `${(miner.actual_win / actual_win_total * 100).toFixed(2)}%`,
-          `${(miner.won / miner.mined * 100).toFixed(2)}%`,
-          `${(miner.burned / miner.total_burn * 100).toFixed(2)}%`,
-          `${numberWithCommas(miner.burned, 0)}`,
-          `${(miner.burned / miner.mined).toFixed(0)}`,
-          `${miner.last_commit}`, `${numberWithCommas(miner.rewards / 1000000, 2)}`,
-          `${numberWithCommas(miner.matured_rewards / 1000000, 2)}`,
-          `${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`,
-        ])
+        if (miner.mined > 0) {
+          table.push([
+            `${last_block - miner.last_block < 4 ? '$' : ' '}`,
+            `${miner_key}`,
+            `${c32.c32ToB58(miner_key)}`,
+            `${miner.actual_win}/${miner.won}/${miner.mined}`,
+            `${(miner.actual_win / actual_win_total * 100).toFixed(2)}%`,
+            `${(miner.won / miner.mined * 100).toFixed(2)}%`,
+            `${(miner.burned / miner.total_burn * 100).toFixed(2)}%`,
+            `${numberWithCommas(miner.burned, 0)}`,
+            `${(miner.burned / miner.mined).toFixed(0)}`,
+            `${miner.last_commit}`, `${numberWithCommas(miner.rewards / 1000000, 2)}`,
+            `${numberWithCommas(miner.matured_rewards / 1000000, 2)}`,
+            `${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`,
+          ])          
+        }
       }      
       console.log(table.toString())
     } else {
-      for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].last_commit - miners[a].last_commit))) {
+      for (let miner_key of Object.keys(miners).filter(miner => miners[miner].mined > 0).sort((a, b) => (miners[b].last_commit - miners[a].last_commit))) {
         const miner = miners[miner_key]
         // console.log(`${last_block - miner.last_block < 4 ? '$' : ' '} ${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / miner.mined * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${(miner.burned / miner.mined).toFixed(0)} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)} = ${numberWithCommas(miner.matured_rewards / 1000000, 2)} + ${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`)
-        table.push([
-          `${last_block - miner.last_block < 4 ? '$' : ' '}`,
-          `${miner_key}`,
-          `${c32.c32ToB58(miner_key)}`,
-          // `${adjustSpace(miner_key)}`,
-          `${miner.actual_win}/${miner.won}/${miner.mined}`,
-          `${(miner.actual_win / miner.mined * 100).toFixed(2)}%`,
-          `${(miner.won / miner.mined * 100).toFixed(2)}%`,
-          `${(miner.burned / miner.total_burn * 100).toFixed(2)}%`,
-          `${numberWithCommas(miner.burned, 0)}`,
-          `${(miner.burned / miner.mined).toFixed(0)}`,
-          `${miner.last_commit}`,
-          `${numberWithCommas(miner.rewards / 1000000, 2)}`,
-          `${numberWithCommas(miner.matured_rewards / 1000000, 2)}`,
-          `${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`,
-        ])
+        if (miner.mined > 0) {
+          table.push([
+            `${last_block - miner.last_block < 4 ? '$' : ' '}`,
+            `${miner_key}`,
+            `${c32.c32ToB58(miner_key)}`,
+            // `${adjustSpace(miner_key)}`,
+            `${miner.actual_win}/${miner.won}/${miner.mined}`,
+            `${(miner.actual_win / miner.mined * 100).toFixed(2)}%`,
+            `${(miner.won / miner.mined * 100).toFixed(2)}%`,
+            `${(miner.burned / miner.total_burn * 100).toFixed(2)}%`,
+            `${numberWithCommas(miner.burned, 0)}`,
+            `${(miner.burned / miner.mined).toFixed(0)}`,
+            `${miner.last_commit}`,
+            `${numberWithCommas(miner.rewards / 1000000, 2)}`,
+            `${numberWithCommas(miner.matured_rewards / 1000000, 2)}`,
+            `${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`,
+          ])          
+        }
       }
       console.log(table.toString())
     }
@@ -1143,7 +1149,9 @@ function process_burnchain_ops() {
       console.log("Distances =======================================================================================================================")
       for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].won - miners[a].won))) {
         const miner = miners[miner_key]
-        console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.average_distance.toFixed(2)}  <${!isNaN(miner.next_average_distance) ? miner.next_average_distance.toFixed(2) : '----'}> ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)
+        if (miner.mined > 0) {
+          console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.average_distance.toFixed(2)}  <${!isNaN(miner.next_average_distance) ? miner.next_average_distance.toFixed(2) : '----'}> ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)          
+        }
       }
     }
     console.log("Statistics ========================================================================================================================")
