@@ -1168,6 +1168,20 @@ function process_burnchain_ops() {
           console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.average_distance.toFixed(2)}  <${!isNaN(miner.next_average_distance) ? miner.next_average_distance.toFixed(2) : '----'}> ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)          
         }
       }
+      console.log("block_parent_distances")
+      for (let index = 0; index < block_parent_distances.length; index++) {
+        const block_parent_distance = block_parent_distances[index]
+        if (block_parent_distance) {
+          console.log(`${index} ${block_parent_distance} ${(block_parent_distance / block_parent_distance_count * 100).toFixed(2)}%`)
+        }
+      }
+      console.log("block_commits_parent_distances")
+      for (let index = 0; index < block_commits_parent_distances.length; index++) {
+        const block_commits_parent_distance = block_commits_parent_distances[index]
+        if (block_commits_parent_distance) {
+          console.log(`${index} ${block_commits_parent_distance} ${(block_commits_parent_distance / block_commits_parent_distance_count * 100).toFixed(2)}%`)
+        }
+      } 
     }
     if (show_totals) {
       console.log("Statistics ========================================================================================================================")
@@ -1182,22 +1196,6 @@ function process_burnchain_ops() {
       console.log("incorrect blocks:", incorrect_blocks)
       if (use_txs) {
         console.log("total transactions (excl coinbase)", transaction_count)
-      }
-      if (show_distances) {
-        console.log("block_parent_distances")
-        for (let index = 0; index < block_parent_distances.length; index++) {
-          const block_parent_distance = block_parent_distances[index]
-          if (block_parent_distance) {
-            console.log(`${index} ${block_parent_distance} ${(block_parent_distance / block_parent_distance_count * 100).toFixed(2)}%`)
-          }
-        }
-        console.log("block_commits_parent_distances")
-        for (let index = 0; index < block_commits_parent_distances.length; index++) {
-          const block_commits_parent_distance = block_commits_parent_distances[index]
-          if (block_commits_parent_distance) {
-            console.log(`${index} ${block_commits_parent_distance} ${(block_commits_parent_distance / block_commits_parent_distance_count * 100).toFixed(2)}%`)
-          }
-        }      
       }
     }
   }
