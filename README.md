@@ -1,6 +1,6 @@
-![Image of Yaktocat](https://github.com/psq/stacks-dump/raw/master/stacks-dump-truck-dark.png)
-
 # stacks-dump
+
+![Stacks Dump Logo](https://github.com/psq/stacks-dump/raw/master/stacks-dump-truck-dark.png)
 
 Dump information from `stacks-node` storage for the [Stacks blockchain](https://github.com/blockstack/stacks-blockchain).
 
@@ -37,7 +37,6 @@ To use, make sure that the stacks data directory is mounted into the container:
 docker run -v /tmp/stacks-testnet-5c87e24790411516:/data -ti stacks-dump:latest /data
 ```
 
-
 ## Usage
 
 Run the script using the current working directory for `stacks-node`, generally found in the `/tmp` folder unless specified via the config file.
@@ -46,11 +45,15 @@ In the commands below, an example folder of `/tmp/stacks-testnet-5c87e2479041151
 
 ### Default
 
+By default, the output will contain the block details, miner statistics, and total statistics.
+
 ```bash
 node report /tmp/stacks-testnet-5c87e24790411516
 ```
 
 ### Options
+
+There are several options to modify the behavior and output of stacks-dump, and multiple options can be combined depending on your use case.
 
 #### Output stats sorted alpha
 
@@ -60,13 +63,23 @@ node report /tmp/stacks-testnet-5c87e24790411516
 node report -a /tmp/stacks-testnet-5c87e24790411516
 ```
 
-#### Output stats as CSV
+#### Skip output of block data
 
-`-c` or `--csv` - display transactions in CSV format
+`-b` or `--no-blocks` - do not display individual block data
+
+```bash
+node report -b /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### Output stats in CSV format
+
+`-c` or `--csv` - display miner statistics in CSV format
 
 ```bash
 node report -c /tmp/stacks-testnet-5c87e24790411516
 ```
+
+*Note: only shows miner statistics, implies `-b` and `-g`*
 
 #### Output block commit distances
 
@@ -78,14 +91,83 @@ node report -d /tmp/stacks-testnet-5c87e24790411516
 
 #### End block
 
-`-e BURN_BLOCK_HEIGHT` or `--end-block BURN_BLOCK_HEIGHT`
-Rather than dump all blocks, will stop at BURN_BLOCK_HEIGHT - 1
+`-e BURN_BLOCK_HEIGHT` or `--end-block BURN_BLOCK_HEIGHT` - rather than dump all blocks, will stop at `BURN_BLOCK_HEIGHT - 1`
+
+```bash
+node report -e 667300 /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### Skip output of totals
+
+`-g` or `--no-totals` - do not display total statistics
+
+```bash
+node report -g /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### Dump `krypton` instead of `mainnet`
+
+`-k` or `--krypton` - the internal structure for `krypton` requires this option
+
+```bash
+node report -k /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### Skip output of stacks-dump logo
+
+`-l` or `--no-logo` - do not display the stacks-dump logo
+
+```bash
+node report -l /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### Dump `mainnet` data, now the default if not included
+
+`-m` or `--mainnet` - the internal structure for `mainnet` requires this option
+
+```bash
+node report -m /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### List all known stacks-nodes
+
+`-n` or `--nodes` - display list of nodes
+
+```bash
+node report -n /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### Dump `mocknet` instead of `mainnet`
+
+`-o` or `--mocknet` - the internal structure for `mocknet` requires this option
+
+```bash
+node report -o /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### Show paths
+
+`-p` or `--show-paths` - show the paths to the burnchain, sortition, vm, and staging databases
+
+```bash
+node report -p /tmp/stacks-testnet-5c87e24790411516
+```
+
+#### Show leader key registrations
+
+`-r` or `--key-registration` - show leader key registrations
+
+```bash
+node report -r /tmp/stacks-testnet-5c87e24790411516
+```
 
 #### Start block
 
-`-s BURN_BLOCK_HEIGHT` or `--start-block BURN_BLOCK_HEIGHT`
+`-s BURN_BLOCK_HEIGHT` or `--start-block BURN_BLOCK_HEIGHT` - rather than dump all blocks, will start at `BURN_BLOCK_HEIGHT`
 
-Rather than dump all blocks, will start at BURN_BLOCK_HEIGHT
+```bash
+node report -s 665250 /tmp/stacks-testnet-5c87e24790411516
+```
 
 #### Show transactions
 
@@ -97,36 +179,12 @@ cargo build --workspace  --features tx_log --bin stacks-node
 node report -t /tmp/stacks-testnet-5c87e24790411516
 ```
 
-#### Dump `krypton` instead of `mainnet`
-
-`-k` or `--krypton` - the internal structure for `krypton` requires this option
-
-```bash
-node report -k /tmp/stacks-testnet-5c87e24790411516
-```
-
-#### Dump `mainnet` data, now the default if not included
-
-`-m` or `--mainnet` - the internal structure for `mainnet` requires this option
-
-```bash
-node report -m /tmp/stacks-testnet-5c87e24790411516
-```
-
 #### Dump `xenon` instead of `mainnet`
 
 `-x` or `--xenon` - the internal structure for `xenon` requires this option
 
 ```bash
 node report -x /tmp/stacks-testnet-5c87e24790411516
-```
-
-#### List all known stacks-nodes
-
-`-n` or `--nodes` - display list of nodes
-
-```bash
-node report -n /tmp/stacks-testnet-5c87e24790411516
 ```
 
 ## Block information
