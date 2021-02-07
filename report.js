@@ -567,6 +567,7 @@ let block_commits_parent_distance_count = 0
 
 const burn_orphans = []
 const miners = {}
+const miners_with_rewards = {}
 let win_total = 0
 let actual_win_total = 0
 
@@ -1056,6 +1057,9 @@ function process_burnchain_ops() {
       miner.next_average_distance = miner.next_block_commits_distances / miner.next_block_commits_count
       miner.pending_reward = miner.rewards - miner.matured_rewards
       pending_rewards += miner.pending_reward
+      if (miner.rewards > 0) {
+        miners_with_rewards[miner_key] = miner
+      }
     }
 
     if (tips.length > 1) {
@@ -1124,7 +1128,7 @@ function process_burnchain_ops() {
       for (let miner_key of Object.keys(miners).filter(miner => miners[miner].mined > 0).sort()) {
         const miner = miners[miner_key]
         // console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${(miner.burned / miner.mined).toFixed(0)} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)} = ${numberWithCommas(miner.matured_rewards / 1000000, 2)} + ${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`)
-        if (miner.mined > 0) {
+        if ((miner.mined > 0 && show_all_miners) || (miner.rewards > 0)) {
           table.push([
             `${last_block - miner.last_block < 4 ? '$' : ' '}`,
             `${miner_key}`,
@@ -1197,6 +1201,7 @@ function process_burnchain_ops() {
       console.log("Statistics ========================================================================================================================")
       console.log("miners (last block):", miner_count_last_block)
       console.log("miners (overall):", Object.keys(miners).length)
+      console.log("miners (won rewards):", Object.keys(miners_with_rewards).length)
       console.log("total commit (last block):", numberWithCommas(burn_last_block, 0), "sats")
       console.log("block reward (last block):", numberWithCommas(reward_last_block, 2), "STX")
       console.log("btc blocks:", blocks)
