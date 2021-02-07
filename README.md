@@ -161,6 +161,9 @@ node report -p /tmp/stacks-testnet-5c87e24790411516
 node report -r /tmp/stacks-testnet-5c87e24790411516
 ```
 
+#### Show all miners
+`--show-all-miners` - show all miners rather than only those who won a reward
+
 #### Start block
 
 `-s BURN_BLOCK_HEIGHT` or `--start-block BURN_BLOCK_HEIGHT` - rather than dump all blocks, will start at `BURN_BLOCK_HEIGHT`
