@@ -383,7 +383,9 @@ let use_txs = false
 let show_all_miners = false
 let show_blocks = true
 let show_distances = false
+let show_invalid = false
 let show_logo = true
+let show_mining = false
 let show_nodes = false
 let show_paths = false
 let show_registrations = false
@@ -391,6 +393,7 @@ let show_totals = true
 let start_block = 0
 let end_block = 2000000000 // probably high enough
 let data_root_path = ''
+let block_count = 100
 const my_args = process.argv.slice(2)
 
 // iterate through included options
@@ -422,6 +425,10 @@ for (let j = 0; j < my_args.length; j++) {
     case '--no-totals':
       show_totals = false
       break
+    case '-i':
+    case '--invalid-pix':
+      show_invalid = true
+      break
     case '-k':
     case '--krypton':
       target = 'krypton'
@@ -438,6 +445,14 @@ for (let j = 0; j < my_args.length; j++) {
     case '--mainnet':
       target = 'mainnet'
       break
+    case '--mining':
+      show_mining = true
+      show_blocks = false
+      if (my_args[j + 1][0] !== '-' && j + 1 < my_args.length - 1) {
+        j++
+        block_count = parseInt(my_args[j])        
+      }
+      break;
     case '-o':
     case '--mocknet':
       target = 'mocknet'
@@ -591,6 +606,10 @@ function fixedBranchName(name) {
   return (name + '       ').slice(0, 2 + numDigits(branches.length))
 }
 
+function fixedFee(fee) {
+  return (fee + '       ').slice(0, 6)
+}
+
 
 function branch_from_parent(block_hash, parent_hash) {
   const branch_info = branches.find(b => b.tip === parent_hash)
@@ -708,7 +727,7 @@ function process_snapshots() {
 
   for (let row of result) {
     if (row.pox_valid === 0) {
-      !use_csv && console.log("pox invalid", row.block_height, row.burn_header_hash, parent && parent.parent_burn_header_hash)
+      !use_csv && show_invalid && console.log("pox invalid", row.block_height, row.burn_header_hash, parent && parent.parent_burn_header_hash)
     } else if (!parent || row.burn_header_hash === parent.parent_burn_header_hash) {
       burn_blocks_by_height[row.block_height] = row
       burn_blocks_by_burn_header_hash[row.burn_header_hash] = row
@@ -1004,6 +1023,10 @@ function process_burnchain_ops() {
 
     
     // console.log("current_winner_block", current_winner_block)
+    // console.log("block", block)
+    const stacks_block_id2 = current_winner_block ? Sha512Trunc256Sum(Buffer.from(block.winning_stacks_block_hash, 'hex'), Buffer.from(block.consensus_hash, 'hex')) : '-'
+    // console.log("stacks_block_id2", stacks_block_id2)
+
     if (!use_csv && show_blocks) {
       console.log(
         block.block_height,
@@ -1013,14 +1036,19 @@ function process_burnchain_ops() {
         // block.block_headers.length ? `${block.block_headers[0].block_height}` : '-',
         block.payments.length ? `${block.payments[0].stacks_block_height}${at_tip}` : '     ',
         block.payments.length ? `${numberWithCommas(parseInt(block.payments[0].coinbase) / 1000000, 2)}` : '   -    ',
+        block.payments.length ? `${fixedFee(numberWithCommas(parseInt(block.payments[0].tx_fees_anchored) + parseInt(block.payments[0].tx_fees_streamed), 0))}` : '  -   ',
         block.actual_burn !== 0 ? numberWithCommas(block.actual_burn, 0) : '    -    ',
-        block.branch_info ? `${fixedBranchName(block.branch_info.name)}` : '    ',
+        block.branch_info ? `${fixedBranchName(block.branch_info.name)}` : '     ',
         // block.branch_info ? block.branch_info.height_created : '-',
-        block.block_headers.length ? `s:${block.block_headers[0].block_hash.substring(0, 10)}` : '     -      ',
+        current_winner_block ? `s:${current_winner_block.block_header_hash.substring(0, 10)}` : '     -      ',
         block.block_headers.length ? `p:${block.block_headers[0].parent_block.substring(0, 10)}` : '     -      ',
-        block.block_headers.length ? `c:${block.block_headers[0].consensus_hash.substring(0, 10)}` : '     -      ',
-        stacks_block_id !== '-' ? `i:${stacks_block_id.substring(0, 10)}` : '     -      ',
-        block.block_headers.length ? `b:${block.block_headers[0].burn_header_hash.substring(0, 25)}` : '            -               ',
+        current_winner_block ? `c:${block.consensus_hash.substring(0, 10)}` : '     -      ',
+        current_winner_block ? `i:${stacks_block_id2.substring(0, 10)}` : '     -      ',
+        // block.block_headers.length ? `s:${block.block_headers[0].block_hash.substring(0, 10)}` : '     -      ',
+        // block.block_headers.length ? `p:${block.block_headers[0].parent_block.substring(0, 10)}` : '     -      ',
+        // block.block_headers.length ? `c:${block.block_headers[0].consensus_hash.substring(0, 10)}` : '     -      ',
+        // stacks_block_id !== '-' ? `i:${stacks_block_id.substring(0, 10)}` : '     -      ',
+        block.block_headers.length ? `b:${block.block_headers[0].burn_header_hash.substring(0, 25)}` : '            -              ',
 
         block.block_headers.length ? `${block.block_headers[0].parent_block === parent_hash ? ((parent_winner_block ? parent_winner_block.leader_key_address : null) === (current_winner_block ? current_winner_block.leader_key_address : null) ? '@+' : '@@') : '  '}` : '  ',
         txids,
@@ -1033,6 +1061,88 @@ function process_burnchain_ops() {
     reward_last_block = block.payments.length ? parseInt(block.payments[0].coinbase) / 1000000 : 0
     parent_winner_block = current_winner_block
     parent_hash = block.block_headers.length ? block.block_headers[0].block_hash : null
+  }
+
+  if (show_mining) {
+    const table_options = {
+      chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
+      style: {
+        head: [ 'cyan', 'bold' ],
+        border: ['grey'],
+        'padding-left': 0,
+        'padding-right': 0,
+      },
+      head: [
+        'height',
+        'dist',
+        'parent',
+        'stx\nheight',
+        'fees\nustx',
+        'reward',
+        'paid sats',
+        'branch'
+      ],
+      colAligns: [
+        'right',
+        'right',
+        'right',
+        'right',
+        'right',
+        'right',
+      ],
+    }
+
+    const end_height = burn_blocks_by_height[burn_blocks_by_height.length - 1].block_height
+    const start_height = end_height - block_count + 1
+    
+    const active_miner_addresses = []
+    // find active miners
+    for (let height = start_height; height <= end_height; height++ ) {
+      const block = burn_blocks_by_height[height]
+      for (let commit of block.block_commits) {
+        if (active_miner_addresses.indexOf(commit.leader_key_address) === -1) {
+          active_miner_addresses.push(commit.leader_key_address)
+          table_options.head.push(' ')
+          table_options.colAligns.push('right')
+        }
+      }
+    }
+
+    const table = new Table(table_options)
+    const sorted_active_miner_addresses = active_miner_addresses.sort()
+
+    // display blocks
+    for (let height = start_height; height <= end_height; height++ ) {
+       const block = burn_blocks_by_height[height]
+       const current_winner_block = block.block_commits.find(bc => bc.txid === block.winning_block_txid)
+       const block_parent_distance = current_winner_block ? (block.block_height - current_winner_block.parent_block_ptr) : -1
+       const at_tip = block.on_winning_fork ? '>' : ' '
+    
+       const row = []
+       row.push(height)
+       row.push(current_winner_block ? block_parent_distance : ' ')
+       row.push(current_winner_block && current_winner_block.parent_block_ptr ? current_winner_block.parent_block_ptr : ' ')
+       row.push(block.payments.length ? `${block.payments[0].stacks_block_height}${at_tip}` : ' ')
+       row.push(block.payments.length ? `${numberWithCommas(parseInt(block.payments[0].coinbase) / 1000000, 2)}` : ' ')
+       row.push(block.payments.length ? `${fixedFee(numberWithCommas(parseInt(block.payments[0].tx_fees_anchored) + parseInt(block.payments[0].tx_fees_streamed), 0))}` : ' ')
+       row.push(block.actual_burn !== 0 ? numberWithCommas(block.actual_burn, 0) : ' ')
+       row.push(block.branch_info ? `${fixedBranchName(block.branch_info.name)}` : ' ')
+
+       for (let address of sorted_active_miner_addresses) {
+         const bc = block.block_commits.find(c => c.leader_key_address === address)
+         if (bc) {
+           if (bc.txid === block.winning_block_txid) {
+             row.push(chalk[block.on_winning_fork ? 'green': 'red'](address.substring(0, 10) + '*'))
+           } else {
+             row.push(address.substring(0, 10) + ' ')
+           }
+         } else {
+           row.push(' ')
+         }
+       }
+       table.push(row)
+    }
+    console.log(table.toString())
   }
 
   if (use_csv) {
