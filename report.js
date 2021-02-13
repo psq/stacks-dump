@@ -1119,6 +1119,7 @@ function process_burnchain_ops() {
        const current_winner_block = block.block_commits.find(bc => bc.txid === block.winning_block_txid)
        const block_parent_distance = current_winner_block ? (block.block_height - current_winner_block.parent_block_ptr) : -1
        const at_tip = block.on_winning_fork ? '>' : ' '
+       const block_burn = block.block_commits.reduce((acc, bc) => (acc + parseInt(bc.burn_fee)), 0)
     
        const row = []
        row.push(height)
@@ -1136,9 +1137,9 @@ function process_burnchain_ops() {
          if (bc) {
            count++
            if (bc.txid === block.winning_block_txid) {
-             row.push(chalk[block.on_winning_fork ? 'green': 'red'](address.substring(0, 10) + '*'))
+             row.push(`[${(parseInt(bc.burn_fee) / block_burn * 100).toFixed(1)}]` + chalk[block.on_winning_fork ? 'green': 'red'](address.substring(0, 10) + '*'))
            } else {
-             row.push(address.substring(0, 10) + ' ')
+             row.push(`[${(parseInt(bc.burn_fee) / block_burn * 100).toFixed(1)}]` + address.substring(0, 10) + ' ')
            }
          } else {
            row.push(' ')
