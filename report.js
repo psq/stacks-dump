@@ -1107,6 +1107,8 @@ function process_burnchain_ops() {
         }
       }
     }
+    table_options.head.push('miner\ncount')
+    table_options.colAligns.push('right')
 
     const table = new Table(table_options)
     const sorted_active_miner_addresses = active_miner_addresses.sort()
@@ -1128,9 +1130,11 @@ function process_burnchain_ops() {
        row.push(block.actual_burn !== 0 ? numberWithCommas(block.actual_burn, 0) : ' ')
        row.push(block.branch_info ? `${fixedBranchName(block.branch_info.name)}` : ' ')
 
+       let count = 0
        for (let address of sorted_active_miner_addresses) {
          const bc = block.block_commits.find(c => c.leader_key_address === address)
          if (bc) {
+           count++
            if (bc.txid === block.winning_block_txid) {
              row.push(chalk[block.on_winning_fork ? 'green': 'red'](address.substring(0, 10) + '*'))
            } else {
@@ -1140,6 +1144,7 @@ function process_burnchain_ops() {
            row.push(' ')
          }
        }
+       row.push(count > 0 ? count : ' ')
        table.push(row)
     }
     console.log(table.toString())
