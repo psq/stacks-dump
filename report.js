@@ -1137,7 +1137,7 @@ function process_burnchain_ops() {
          if (bc) {
            count++
            if (bc.txid === block.winning_block_txid) {
-             row.push(`[${(parseInt(bc.burn_fee) / block_burn * 100).toFixed(1)}]` + chalk[block.on_winning_fork ? 'green': 'red'](address.substring(0, 10) + '*'))
+             row.push(chalk[block.on_winning_fork ? 'green': 'red'](`[${(parseInt(bc.burn_fee) / block_burn * 100).toFixed(1)}]` + address.substring(0, 10) + '*'))
            } else {
              row.push(`[${(parseInt(bc.burn_fee) / block_burn * 100).toFixed(1)}]` + address.substring(0, 10) + ' ')
            }
