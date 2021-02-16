@@ -382,6 +382,7 @@ let use_csv = false
 let use_txs = false
 let show_all_miners = false
 let show_blocks = true
+let show_commits = 1
 let show_distances = false
 let show_invalid = false
 let show_logo = true
@@ -468,6 +469,10 @@ for (let j = 0; j < my_args.length; j++) {
       break
     case '--show-all-miners':
       show_all_miners = true
+      break
+    case '--show-commits':
+      j++
+      show_commits = parseInt(my_args[j])
       break
     case '-r':
     case '--key-registration':
@@ -1147,6 +1152,16 @@ function process_burnchain_ops() {
        }
        row.push(count > 0 ? count : ' ')
        table.push(row)
+       if (height >  end_height - show_commits) {
+         const extra_row = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
+         for (let address of sorted_active_miner_addresses) {
+           const bcs = block.block_commits.filter(c => c.leader_key_address === address)
+           const amount = bcs.reduce((acc, bc) => acc + parseInt(bc.burn_fee), 0)
+           extra_row.push(amount > 0 ? numberWithCommas(amount, 0) : '')
+         }
+         extra_row.push(' ')
+         table.push(extra_row)
+       }
     }
     console.log(table.toString())
   }
