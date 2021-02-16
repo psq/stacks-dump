@@ -811,14 +811,14 @@ function process_staging_blocks() {
   // console.log("staging_blocks", result)
   // console.log("staging_blocks.length", result.length)
   // console.log("burn_blocks_by_consensus_hash", burn_blocks_by_consensus_hash)
-        for (let row of result) {
-          // console.log(row.consensus_hash, row)
-          if (burn_blocks_by_consensus_hash[row.consensus_hash]) {
-            burn_blocks_by_consensus_hash[row.consensus_hash].staging_blocks.push(row)            
-          } else {
-            console.log("missing consensus hash", row.consensus_hash)            
-          }
-        }
+  for (let row of result) {
+    // console.log(row.consensus_hash, row)
+    if (burn_blocks_by_consensus_hash[row.consensus_hash]) {
+      burn_blocks_by_consensus_hash[row.consensus_hash].staging_blocks.push(row)            
+    } else {
+      console.log("missing consensus hash", row.consensus_hash)            
+    }
+  }
 }
 
 function process_block_headers() {
@@ -1133,13 +1133,13 @@ function process_burnchain_ops() {
 
        let count = 0
        for (let address of sorted_active_miner_addresses) {
-         const bc = block.block_commits.find(c => c.leader_key_address === address)
-         if (bc) {
+         const bcs = block.block_commits.filter(c => c.leader_key_address === address)
+         if (bcs.length > 0) {
            count++
-           if (bc.txid === block.winning_block_txid) {
-             row.push(chalk[block.on_winning_fork ? 'green': 'red'](`[${(parseInt(bc.burn_fee) / block_burn * 100).toFixed(1)}]` + address.substring(0, 10) + '*'))
+           if (bcs.find(bc => bc.txid === block.winning_block_txid)) {
+             row.push(chalk[block.on_winning_fork ? 'green': 'red'](`[${(parseInt(bcs[0].burn_fee) / block_burn * 100).toFixed(1)}]` + address.substring(0, 10) + '*'))
            } else {
-             row.push(`[${(parseInt(bc.burn_fee) / block_burn * 100).toFixed(1)}]` + address.substring(0, 10) + ' ')
+             row.push(`[${(parseInt(bcs[0].burn_fee) / block_burn * 100).toFixed(1)}]` + address.substring(0, 10) + ' ')
            }
          } else {
            row.push(' ')
