@@ -113,7 +113,7 @@ const root = ''
 
 
 // CREATE TABLE marf_data (
-//    block_id INTEGER PRIMARY KEY, 
+//    block_id INTEGER PRIMARY KEY,
 //    block_hash TEXT UNIQUE NOT NULL,
 //    data BLOB NOT NULL,
 //    unconfirmed INTEGER NOT NULL
@@ -121,7 +121,7 @@ const root = ''
 // CREATE INDEX block_hash_marf_data ON marf_data(block_hash);
 // CREATE INDEX unconfirmed_marf_data ON marf_data(unconfirmed);
 // CREATE TABLE mined_blocks (
-//    block_id INTEGER PRIMARY KEY, 
+//    block_id INTEGER PRIMARY KEY,
 //    block_hash TEXT UNIQUE NOT NULL,
 //    data BLOB NOT NULL
 // );
@@ -169,7 +169,7 @@ const root = ''
 //         block_height INTEGER NOT NULL,
 //         burn_header_hash TEXT NOT NULL,
 //         sortition_id TEXT NOT NULL,
-        
+
 //         consensus_hash TEXT NOT NULL,
 //         public_key TEXT NOT NULL,
 //         memo TEXT,
@@ -236,7 +236,7 @@ const root = ''
 //         );
 
 // CREATE TABLE marf_data (
-//    block_id INTEGER PRIMARY KEY, 
+//    block_id INTEGER PRIMARY KEY,
 //    block_hash TEXT UNIQUE NOT NULL,
 //    data BLOB NOT NULL,
 //    unconfirmed INTEGER NOT NULL
@@ -244,7 +244,7 @@ const root = ''
 // CREATE INDEX block_hash_marf_data ON marf_data(block_hash);
 // CREATE INDEX unconfirmed_marf_data ON marf_data(unconfirmed);
 // CREATE TABLE mined_blocks (
-//    block_id INTEGER PRIMARY KEY, 
+//    block_id INTEGER PRIMARY KEY,
 //    block_hash TEXT UNIQUE NOT NULL,
 //    data BLOB NOT NULL
 // );
@@ -261,9 +261,9 @@ const root = ''
 //         tx_merkle_root TEXT NOT NULL,
 //         state_index_root TEXT NOT NULL,
 //         microblock_pubkey_hash TEXT NOT NULL,
-        
+
 //         block_hash TEXT NOT NULL,                   -- NOTE: this is *not* unique, since two burn chain forks can commit to the same Stacks block.
-//         index_block_hash TEXT UNIQUE NOT NULL,      -- NOTE: this is the hash of the block hash and consensus hash of the burn block that selected it, 
+//         index_block_hash TEXT UNIQUE NOT NULL,      -- NOTE: this is the hash of the block hash and consensus hash of the burn block that selected it,
 //                                                     -- and is guaranteed to be globally unique (across all Stacks forks and across all PoX forks).
 //                                                     -- index_block_hash is the block hash fed into the MARF index.
 
@@ -294,9 +294,9 @@ const root = ''
 //         stx_burns TEXT NOT NULL,            -- encodes u128
 //         burnchain_commit_burn INT NOT NULL,
 //         burnchain_sortition_burn INT NOT NULL,
-//         fill TEXT NOT NULL,                 -- encodes u64 
+//         fill TEXT NOT NULL,                 -- encodes u64
 //         miner INT NOT NULL,
-        
+
 //         -- internal use
 //         stacks_block_height INTEGER NOT NULL,
 //         index_block_hash TEXT NOT NULL,     -- NOTE: can't enforce UNIQUE here, because there will be multiple entries per block
@@ -389,6 +389,7 @@ let show_logo = true
 let show_mining = false
 let show_nodes = false
 let show_paths = false
+let show_recent_only = false
 let show_registrations = false
 let show_totals = true
 let start_block = 0
@@ -451,7 +452,7 @@ for (let j = 0; j < my_args.length; j++) {
       show_blocks = false
       if (my_args[j + 1][0] !== '-' && j + 1 < my_args.length - 1) {
         j++
-        block_count = parseInt(my_args[j])        
+        block_count = parseInt(my_args[j])
       }
       break;
     case '-o':
@@ -477,6 +478,9 @@ for (let j = 0; j < my_args.length; j++) {
     case '-r':
     case '--key-registration':
       show_registrations = true
+      break
+    case '--recent':
+      show_recent_only = true
       break
     case '-t':
     case '--tx-log':
@@ -657,7 +661,7 @@ function post_process_block_commits() {
       for (let block_commit of block.block_commits) {
         block_commit.leader_key = find_leader_key(block_commit.key_block_ptr, block_commit.key_vtxindex)
         block_commit.leader_key_address = block_commit.leader_key.address
-      }      
+      }
     }
   }
 }
@@ -696,7 +700,7 @@ function post_process_miner_stats() {
           // console.log(block_commit.block_height, block_commit.parent_block_ptr)
           if (block_commit.block_height - block_commit.parent_block_ptr < 1000) {
             miner.distance_sum += block_commit.block_height - block_commit.parent_block_ptr
-            miner.distance_count++            
+            miner.distance_count++
           }
           if (block_commit.txid === block.winning_block_txid) {
             miner.won++
@@ -711,9 +715,9 @@ function post_process_miner_stats() {
             // } else {
             //   console.log("====> block.block_height", block.block_height, miner)
             }
-          }          
+          }
         }
-      }      
+      }
     }
   }
 }
@@ -763,7 +767,7 @@ function process_leader_keys() {
   // console.log("process_leader_keys.length", result.length)
   for (let row of result) {
     if (burn_blocks_by_burn_header_hash[row.burn_header_hash]) {
-      burn_blocks_by_burn_header_hash[row.burn_header_hash].leader_keys.push(row)    
+      burn_blocks_by_burn_header_hash[row.burn_header_hash].leader_keys.push(row)
     }
   }
 }
@@ -776,11 +780,11 @@ function process_block_commits() {
     // console.log("block_commits", row)
 
     const block_parent_distance = row.block_height - row.parent_block_ptr
-    
+
     const block = burn_blocks_by_height[row.block_height]
     if (block_parent_distance < 1000 && block) {
       block.block_commits_distances += block_parent_distance
-      block.block_commits_count++  
+      block.block_commits_count++
     }
 
     if (!block_commits_parent_distances[block_parent_distance]) {
@@ -791,7 +795,7 @@ function process_block_commits() {
     block_commits_parent_distance_count++
 
     if (burn_blocks_by_burn_header_hash[row.burn_header_hash]) {
-      burn_blocks_by_burn_header_hash[row.burn_header_hash].block_commits.push(row)      
+      burn_blocks_by_burn_header_hash[row.burn_header_hash].block_commits.push(row)
     }
   }
 }
@@ -804,7 +808,7 @@ function process_payments() {
   for (let row of result) {
     // console.log(row.burn_header_hash, row)
     if (burn_blocks_by_consensus_hash[row.consensus_hash]) {
-      burn_blocks_by_consensus_hash[row.consensus_hash].payments.push(row)     
+      burn_blocks_by_consensus_hash[row.consensus_hash].payments.push(row)
     } else {
       console.log("missing consensus hash", row.consensus_hash)
     }
@@ -819,9 +823,9 @@ function process_staging_blocks() {
   for (let row of result) {
     // console.log(row.consensus_hash, row)
     if (burn_blocks_by_consensus_hash[row.consensus_hash]) {
-      burn_blocks_by_consensus_hash[row.consensus_hash].staging_blocks.push(row)            
+      burn_blocks_by_consensus_hash[row.consensus_hash].staging_blocks.push(row)
     } else {
-      console.log("missing consensus hash", row.consensus_hash)            
+      console.log("missing consensus hash", row.consensus_hash)
     }
   }
 }
@@ -861,7 +865,7 @@ function post_process_winning_fork() {
       winning_miner.actual_win++
       winning_miner.rewards += burn_block.payments.length ? parseInt(burn_block.payments[0].coinbase) : 0
       if (stacks_block.block_height + 100 <= stacks_chain_height) {
-        winning_miner.matured_rewards += burn_block.payments.length ? parseInt(burn_block.payments[0].coinbase) : 0        
+        winning_miner.matured_rewards += burn_block.payments.length ? parseInt(burn_block.payments[0].coinbase) : 0
       }
       actual_win_total++
     }
@@ -962,7 +966,7 @@ function process_burnchain_ops() {
   process_block_headers()
 
   if (use_txs) {
-    process_transactions()   
+    process_transactions()
   }
 
   post_process_block_commits()
@@ -1026,7 +1030,7 @@ function process_burnchain_ops() {
       miners[bc.leader_key_address].last_commit = bc.burn_fee
     })
 
-    
+
     // console.log("current_winner_block", current_winner_block)
     // console.log("block", block)
     const stacks_block_id2 = current_winner_block ? Sha512Trunc256Sum(Buffer.from(block.winning_stacks_block_hash, 'hex'), Buffer.from(block.consensus_hash, 'hex')) : '-'
@@ -1099,7 +1103,7 @@ function process_burnchain_ops() {
 
     const end_height = burn_blocks_by_height[burn_blocks_by_height.length - 1].block_height
     const start_height = end_height - block_count + 1
-    
+
     const active_miner_addresses = []
     // find active miners
     for (let height = start_height; height <= end_height; height++ ) {
@@ -1125,7 +1129,7 @@ function process_burnchain_ops() {
        const block_parent_distance = current_winner_block ? (block.block_height - current_winner_block.parent_block_ptr) : -1
        const at_tip = block.on_winning_fork ? '>' : ' '
        const block_burn = block.block_commits.reduce((acc, bc) => (acc + parseInt(bc.burn_fee)), 0)
-    
+
        const row = []
        row.push(height)
        row.push(current_winner_block ? block_parent_distance : ' ')
@@ -1172,7 +1176,7 @@ function process_burnchain_ops() {
     for (let miner_key of Object.keys(miners).filter(miner => miners[miner].mined > 0).sort()) {
       const miner = miners[miner_key]
       if (miner.mined > 0) {
-        console.log(`${miner_key},${c32.c32ToB58(miner_key)},${miner.actual_win},${miner.won},${miner.mined},${(miner.actual_win / actual_win_total * 100).toFixed(2)}%,${(miner.won / miner.mined * 100).toFixed(2)}%,${miner.burned},${(miner.burned / miner.total_burn * 100).toFixed(2)}%,${miner.burned / miner.mined},${miner.last_commit},${miner.rewards/1000000},${miner.matured_rewards/1000000}`)        
+        console.log(`${miner_key},${c32.c32ToB58(miner_key)},${miner.actual_win},${miner.won},${miner.mined},${(miner.actual_win / actual_win_total * 100).toFixed(2)}%,${(miner.won / miner.mined * 100).toFixed(2)}%,${miner.burned},${(miner.burned / miner.total_burn * 100).toFixed(2)}%,${miner.burned / miner.mined},${miner.last_commit},${miner.rewards/1000000},${miner.matured_rewards/1000000}`)
       }
       miner.average_burn = miner.burned / miner.mined
       miner.normalized_wins = miner.won / miner.average_burn
@@ -1275,15 +1279,15 @@ function process_burnchain_ops() {
             miner.matured_rewards !== 0 ? `${numberWithCommas(miner.matured_rewards / 1000000, 2)}` : '',
             miner.pending_reward !== 0 ? `${numberWithCommas((miner.pending_reward) / 1000000, 2)}` : '',
             miner.pending_reward !== 0 ? (miner.pending_reward / pending_rewards * 100).toFixed(2) : '',
-          ])          
+          ])
         }
-      }      
+      }
       console.log(table.toString())
     } else {
       for (let miner_key of Object.keys(miners).filter(miner => miners[miner].mined > 0).sort((a, b) => (miners[b].last_commit - miners[a].last_commit))) {
         const miner = miners[miner_key]
         // console.log(`${last_block - miner.last_block < 4 ? '$' : ' '} ${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / miner.mined * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${(miner.burned / miner.mined).toFixed(0)} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)} = ${numberWithCommas(miner.matured_rewards / 1000000, 2)} + ${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`)
-        if ((miner.mined > 0 && show_all_miners) || (miner.rewards > 0) || (last_block - miner.last_block < 4)) {
+        if ((!show_recent_only && ((miner.mined > 0 && show_all_miners) || (miner.rewards > 0) || (last_block - miner.last_block < 4))) || ((last_block - miner.last_block < 4) || miner.pending_reward > 0)) {
           table.push([
             `${last_block - miner.last_block < 4 ? '$' : ' '}`,
             `${miner_key}`,
@@ -1299,7 +1303,7 @@ function process_burnchain_ops() {
             miner.matured_rewards !== 0 ? `${numberWithCommas(miner.matured_rewards / 1000000, 2)}` : '',
             miner.pending_reward !== 0 ? `${numberWithCommas((miner.pending_reward) / 1000000, 2)}` : '',
             miner.pending_reward !== 0 ? (miner.pending_reward / pending_rewards * 100).toFixed(2) : '',
-          ])          
+          ])
         }
       }
       console.log(table.toString())
@@ -1310,7 +1314,7 @@ function process_burnchain_ops() {
       for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].won - miners[a].won))) {
         const miner = miners[miner_key]
         if (miner.mined > 0) {
-          console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.average_distance.toFixed(2)}  <${!isNaN(miner.next_average_distance) ? miner.next_average_distance.toFixed(2) : '----'}> ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)          
+          console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.average_distance.toFixed(2)}  <${!isNaN(miner.next_average_distance) ? miner.next_average_distance.toFixed(2) : '----'}> ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)
         }
       }
       console.log("block_parent_distances")
@@ -1326,7 +1330,7 @@ function process_burnchain_ops() {
         if (block_commits_parent_distance) {
           console.log(`${index} ${block_commits_parent_distance} ${(block_commits_parent_distance / block_commits_parent_distance_count * 100).toFixed(2)}%`)
         }
-      } 
+      }
     }
     if (show_totals) {
       console.log("Statistics ========================================================================================================================")
