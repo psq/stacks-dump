@@ -1310,6 +1310,7 @@ function process_burnchain_ops() {
       options.colAligns.push('right')
     }
     const table = new Table(options)
+    let sortedMinerKeys
     if (use_alpha) {
       sortedMinerKeys = Object.keys(miners).filter(miner => miners[miner].mined > 0).sort()
     } else {
