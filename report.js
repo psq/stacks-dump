@@ -507,11 +507,20 @@ for (let j = 0; j < my_args.length; j++) {
   }
 }
 
-const peer_db_path = `peer_db.sqlite`
-const burnchain_db_path = `burnchain/db/bitcoin/${target === 'mainnet' ? 'mainnet' : (target === 'xenon' ? 'testnet' : (target === 'mocknet' ? 'mocknet' : 'regtest'))}/burnchain.db`
-const sortition_db_path = `burnchain/db/bitcoin/${target === 'mainnet' ? 'mainnet' : (target === 'xenon' ? 'testnet' : (target === 'mocknet' ? 'mocknet' : 'regtest'))}/sortition.db/marf`
-const vm_db_path = `chainstate/chain-${target === 'mainnet' ? '01000000-mainnet' : '00000080-testnet'}/vm/index`
-const staging_db_path = `chainstate/chain-${target === 'mainnet' ? '01000000-mainnet' : '00000080-testnet'}/vm/index`
+
+const prefix =
+  target === "mainnet"
+    ? "mainnet"
+    : target === "xenon"
+    ? "testnet"
+    : target === "mocknet"
+    ? "mocknet"
+    : "regtest"
+const peer_db_path = `${prefix}/peer_db.sqlite`
+const burnchain_db_path = `${prefix}/burnchain/burnchain.sqlite`
+const sortition_db_path = `${prefix}/burnchain/sortition/marf.sqlite`
+const vm_db_path = `${prefix}/chainstate/vm/index.sqlite`
+const staging_db_path = `${prefix}/chainstate/vm/index.sqlite`
 
 if (show_logo) {
   truck()
@@ -1301,71 +1310,43 @@ function process_burnchain_ops() {
       options.colAligns.push('right')
     }
     const table = new Table(options)
+    let sorted_miner_keys
     if (use_alpha) {
-      for (let miner_key of Object.keys(miners).filter(miner => miners[miner].mined > 0).sort()) {
-        const miner = miners[miner_key]
-        // console.log(`${last_block - miner.last_block < 4 ? '$' : ' '} ${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / miner.mined * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${(miner.burned / miner.mined).toFixed(0)} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)} = ${numberWithCommas(miner.matured_rewards / 1000000, 2)} + ${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`)
-        if ((!show_recent_only && ((miner.mined > 0 && show_all_miners) || (miner.rewards > 0) || (last_block - miner.last_block < 4))) || ((last_block - miner.last_block < 4) || miner.pending_reward > 0)) {
-          const row =[
-            `${last_block - miner.last_block < 4 ? '$' : ' '}`,
-            `${miner_key}`,
-            `${c32.c32ToB58(miner_key)}`,
-            `${miner.actual_win}/${miner.won}/${miner.mined}`,
-            `${(miner.actual_win / miner.mined * 100).toFixed(2)}%`,
-            `${(miner.won / miner.mined * 100).toFixed(2)}%`,
-            `${(miner.burned / miner.total_burn * 100).toFixed(2)}%`,
-            `${numberWithCommas(miner.burned, 0)}`,
-            // `${(miner.burned / miner.mined).toFixed(0)}`,
-            `${numberWithCommas(parseInt(miner.last_commit), 0)}`,
-            miner.total_rewards !== 0 ? `${numberWithCommas(miner.total_rewards / 1000000, 2)}` : '',
-            miner.rewards !== 0 ? `${numberWithCommas(miner.rewards / 1000000, 2)}` : '',
-            miner.matured_rewards !== 0 ? `${numberWithCommas(miner.matured_rewards / 1000000, 2)}` : '',
-            miner.pending_reward !== 0 ? `${numberWithCommas((miner.pending_reward) / 1000000, 2)}` : '',
-            miner.pending_reward !== 0 ? (miner.pending_reward / pending_rewards * 100).toFixed(2) : '',
-          ]
-          if (fee && exchange) {
-            const fees = fee * miner.mined
-            const cost = (miner.burned + fees) / miner.rewards * 1000000
-            row.push(miner.rewards ? `${chalk[cost > exchange ? 'red' : 'green'](numberWithCommas(cost, 0))}` : '')
-            row.push(miner.rewards ? `${chalk[cost > exchange ? 'red' : 'green'](numberWithCommas( miner.rewards / 1000000 * exchange - miner.burned - fees, 0))}` : chalk.red(numberWithCommas(-(miner.burned + fees), 0)))
-          }
-          table.push(row)
-        }
-      }
-      console.log(table.toString())
+      sorted_miner_keys = Object.keys(miners).filter(miner => miners[miner].mined > 0).sort()
     } else {
-      for (let miner_key of Object.keys(miners).filter(miner => miners[miner].mined > 0).sort((a, b) => (miners[b].last_commit - miners[a].last_commit))) {
-        const miner = miners[miner_key]
-        // console.log(`${last_block - miner.last_block < 4 ? '$' : ' '} ${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / miner.mined * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${(miner.burned / miner.mined).toFixed(0)} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)} = ${numberWithCommas(miner.matured_rewards / 1000000, 2)} + ${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`)
-        if ((!show_recent_only && ((miner.mined > 0 && show_all_miners) || (miner.rewards > 0) || (last_block - miner.last_block < 4))) || ((last_block - miner.last_block < 4) || miner.pending_reward > 0)) {
-          const row =[
-            `${last_block - miner.last_block < 4 ? '$' : ' '}`,
-            `${miner_key}`,
-            `${c32.c32ToB58(miner_key)}`,
-            `${miner.actual_win}/${miner.won}/${miner.mined}`,
-            `${(miner.actual_win / miner.mined * 100).toFixed(2)}%`,
-            `${(miner.won / miner.mined * 100).toFixed(2)}%`,
-            `${(miner.burned / miner.total_burn * 100).toFixed(2)}%`,
-            `${numberWithCommas(miner.burned, 0)}`,
-            // `${(miner.burned / miner.mined).toFixed(0)}`,
-            `${numberWithCommas(parseInt(miner.last_commit), 0)}`,
-            miner.total_rewards !== 0 ? `${numberWithCommas(miner.total_rewards / 1000000, 2)}` : '',
-            miner.rewards !== 0 ? `${numberWithCommas(miner.rewards / 1000000, 2)}` : '',
-            miner.matured_rewards !== 0 ? `${numberWithCommas(miner.matured_rewards / 1000000, 2)}` : '',
-            miner.pending_reward !== 0 ? `${numberWithCommas((miner.pending_reward) / 1000000, 2)}` : '',
-            miner.pending_reward !== 0 ? (miner.pending_reward / pending_rewards * 100).toFixed(2) : '',
-          ]
-          if (fee && exchange) {
-            const fees = fee * miner.mined
-            const cost = (miner.burned + fees) / miner.rewards * 1000000
-            row.push(miner.rewards ? `${chalk[cost > exchange ? 'red' : 'green'](numberWithCommas(cost, 0))}` : '')
-            row.push(miner.rewards ? `${chalk[cost > exchange ? 'red' : 'green'](numberWithCommas( miner.rewards / 1000000 * exchange - miner.burned - fees, 0))}` : chalk.red(numberWithCommas(-(miner.burned + fees), 0)))
-          }
-          table.push(row)
-        }
-      }
-      console.log(table.toString())
+      sorted_miner_keys = Object.keys(miners).filter(miner => miners[miner].mined > 0).sort((a, b) => (miners[b].last_commit - miners[a].last_commit))
     }
+    for (let miner_key of sorted_miner_keys) {
+      const miner = miners[miner_key]
+      // console.log(`${last_block - miner.last_block < 4 ? '$' : ' '} ${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / miner.mined * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${(miner.burned / miner.mined).toFixed(0)} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)} = ${numberWithCommas(miner.matured_rewards / 1000000, 2)} + ${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`)
+      if ((!show_recent_only && ((miner.mined > 0 && show_all_miners) || (miner.rewards > 0) || (last_block - miner.last_block < 4))) || ((last_block - miner.last_block < 4) || miner.pending_reward > 0)) {
+        const row =[
+          `${last_block - miner.last_block < 4 ? '$' : ' '}`,
+          `${miner_key}`,
+          `${c32.c32ToB58(miner_key)}`,
+          `${miner.actual_win}/${miner.won}/${miner.mined}`,
+          `${(miner.actual_win / miner.mined * 100).toFixed(2)}%`,
+          `${(miner.won / miner.mined * 100).toFixed(2)}%`,
+          `${(miner.burned / miner.total_burn * 100).toFixed(2)}%`,
+          `${numberWithCommas(miner.burned, 0)}`,
+          // `${(miner.burned / miner.mined).toFixed(0)}`,
+          `${numberWithCommas(parseInt(miner.last_commit), 0)}`,
+          miner.total_rewards !== 0 ? `${numberWithCommas(miner.total_rewards / 1000000, 2)}` : '',
+          miner.rewards !== 0 ? `${numberWithCommas(miner.rewards / 1000000, 2)}` : '',
+          miner.matured_rewards !== 0 ? `${numberWithCommas(miner.matured_rewards / 1000000, 2)}` : '',
+          miner.pending_reward !== 0 ? `${numberWithCommas((miner.pending_reward) / 1000000, 2)}` : '',
+          miner.pending_reward !== 0 ? (miner.pending_reward / pending_rewards * 100).toFixed(2) : '',
+        ]
+        if (fee && exchange) {
+          const fees = fee * miner.mined
+          const cost = (miner.burned + fees) / miner.rewards * 1000000
+          row.push(miner.rewards ? `${chalk[cost > exchange ? 'red' : 'green'](numberWithCommas(cost, 0))}` : '')
+          row.push(miner.rewards ? `${chalk[cost > exchange ? 'red' : 'green'](numberWithCommas( miner.rewards / 1000000 * exchange - miner.burned - fees, 0))}` : chalk.red(numberWithCommas(-(miner.burned + fees), 0)))
+        }
+        table.push(row)
+      }
+    }
+    console.log(table.toString())
 
     if (show_distances) {
       console.log("Distances =======================================================================================================================")
