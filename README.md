@@ -287,3 +287,8 @@ shows that there were no valid miner commit in the btc block, most likely becaus
 i.e. for version 24.0.x.x or 23.x.x.x, use `report-24.0.x.x` instead of `report`.  This will become obsolete very soon, but will be useful for some running the mining challenge on krypton
 
 Note: one way to tell you need this version is if you get an error with `no such table: staging_blocks`
+
+Note: the latest version now uses the database layout as used in the `develop` branch, in order to use the original mainnet layout, use:
+```
+git checkout dc2d89694a52fcd0ae7bedc444266e005f29964b
+```
