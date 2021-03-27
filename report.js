@@ -507,11 +507,19 @@ for (let j = 0; j < my_args.length; j++) {
   }
 }
 
-const peer_db_path = `peer_db.sqlite`
-const burnchain_db_path = `burnchain/db/bitcoin/${target === 'mainnet' ? 'mainnet' : (target === 'xenon' ? 'testnet' : (target === 'mocknet' ? 'mocknet' : 'regtest'))}/burnchain.db`
-const sortition_db_path = `burnchain/db/bitcoin/${target === 'mainnet' ? 'mainnet' : (target === 'xenon' ? 'testnet' : (target === 'mocknet' ? 'mocknet' : 'regtest'))}/sortition.db/marf`
-const vm_db_path = `chainstate/chain-${target === 'mainnet' ? '01000000-mainnet' : '00000080-testnet'}/vm/index`
-const staging_db_path = `chainstate/chain-${target === 'mainnet' ? '01000000-mainnet' : '00000080-testnet'}/vm/index`
+// STACKS_BLOCKS_ROOT="$STACKS_WORKING_DIR/$CHAIN_MODE/chainstate/blocks/"
+// STACKS_STAGING_DB="$STACKS_WORKING_DIR/chainstate/chain-00000080-testnet/vm/index"  STACKS_STAGING_DB="$STACKS_WORKING_DIR/$CHAIN_MODE/chainstate/vm/index.sqlite"
+// STACKS_HEADERS_DB="$STACKS_WORKING_DIR/chainstate/chain-00000080-testnet/vm/index"  STACKS_HEADERS_DB="$STACKS_WORKING_DIR/$CHAIN_MODE/chainstate/vm/index.sqlite"
+// STACKS_SORTITION_DB="$STACKS_WORKING_DIR/burnchain/db/bitcoin/regtest/sortition.db/marf"  STACKS_SORTITION_DB="$STACKS_WORKING_DIR/$CHAIN_MODE/burnchain/sortition/marf.sqlite"
+// STACKS_MEMPOOL_DB="$STACKS_WORKING_DIR/chainstate/mempool.db"  STACKS_MEMPOOL_DB="$STACKS_WORKING_DIR/$CHAIN_MODE/chainstate/mempool.sqlite"
+
+
+const target_root = target === 'mainnet' ? 'mainnet' : (target === 'xenon' ? 'testnet' : (target === 'mocknet' ? 'mocknet' : 'regtest'))
+const peer_db_path = `${target_root}/peer.sqlite`
+const burnchain_db_path = `${target_root}/burnchain/burnchain.sqlite`
+const sortition_db_path = `${target_root}/burnchain/sortition/marf.sqlite`
+const vm_db_path = `${target_root}/chainstate/vm/index.sqlite`
+const staging_db_path = `${target_root}/chainstate/vm/index.sqlite`
 
 if (show_logo) {
   truck()
