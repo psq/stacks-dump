@@ -525,10 +525,10 @@ const sortition_db_path = `${target_root}/burnchain/sortition/marf.sqlite`
 const vm_db_path = `${target_root}/chainstate/vm/index.sqlite`
 const staging_db_path = `${target_root}/chainstate/vm/index.sqlite`
 
-if (show_logo) {
-  truck()
-  console.log()
-}
+// if (show_logo) {
+//   truck()
+//   console.log()
+// }
 
 if (show_paths) {
   console.log("burnchain_db_path", burnchain_db_path)
@@ -991,9 +991,9 @@ function process_burnchain_ops() {
     }
     burnchain_ops_by_burn_hash[row.block_hash].push(op)
   }
-  if (!use_csv && show_blocks) {
-    console.log("Blocks ============================================================================================================================")
-  }
+  // if (!use_csv && show_blocks) {
+  //   console.log("Blocks ============================================================================================================================")
+  // }
 }
 
 
@@ -1082,35 +1082,41 @@ function process_burnchain_ops() {
       const stacks_block_id2 = current_winner_block ? Sha512Trunc256Sum(Buffer.from(block.winning_stacks_block_hash, 'hex'), Buffer.from(block.consensus_hash, 'hex')) : '-'
       // console.log("stacks_block_id2", stacks_block_id2)
 
-      if (!use_csv && show_blocks) {
-        // console.log(block)
+      if (block.payments.length && block.on_winning_fork) {
         console.log(
-          block.block_height,
-          current_winner_block ? block_parent_distance : '?',
-          current_winner_block && current_winner_block.parent_block_ptr ? current_winner_block.parent_block_ptr : '   -  ',
-
-          // block.block_headers.length ? `${block.block_headers[0].block_height}` : '-',
-          block.payments.length ? `${block.payments[0].stacks_block_height}${at_tip}` : '     ',
-          block.payments.length ? `${numberWithCommas(parseInt(block.payments[0].coinbase) / 1000000, 2)}` : '   -    ',
-          block.payments.length ? `${fixedFee(numberWithCommas(parseInt(block.payments[0].tx_fees_anchored) + parseInt(block.payments[0].tx_fees_streamed), 0))}` : '  -   ',
-          block.actual_burn !== 0 ? numberWithCommas(block.actual_burn, 0) : '    -    ',
-          block.branch_info ? `${fixedBranchName(block.branch_info.name)}` : '     ',
-          // block.branch_info ? block.branch_info.height_created : '-',
-          current_winner_block ? `s:${current_winner_block.block_header_hash.substring(0, 10)}` : '     -      ',
-          block.block_headers.length ? `p:${block.block_headers[0].parent_block.substring(0, 10)}` : '     -      ',
-          current_winner_block ? `c:${block.consensus_hash.substring(0, 10)}` : '     -      ',
-          current_winner_block ? `i:${stacks_block_id2.substring(0, 10)}` : '     -      ',
-          // block.block_headers.length ? `s:${block.block_headers[0].block_hash.substring(0, 10)}` : '     -      ',
-          // block.block_headers.length ? `p:${block.block_headers[0].parent_block.substring(0, 10)}` : '     -      ',
-          // block.block_headers.length ? `c:${block.block_headers[0].consensus_hash.substring(0, 10)}` : '     -      ',
-          // stacks_block_id !== '-' ? `i:${stacks_block_id.substring(0, 10)}` : '     -      ',
-          `b:${block.burn_header_hash.substring(0, 25)}`,
-
-          block.block_headers.length ? `${block.block_headers[0].parent_block === parent_hash ? ((parent_winner_block ? parent_winner_block.leader_key_address : null) === (current_winner_block ? current_winner_block.leader_key_address : null) ? '@+' : '@@') : '  '}` : '  ',
-          txids,
-          block.block_commits.sort((a, b) => (a.leader_key_address.localeCompare(b.leader_key_address))).map(bc => `[${(parseInt(bc.burn_fee) / block_burn * 100).toFixed(1)}]${bc.txid === block.winning_block_txid ? (chalk[block.on_winning_fork ? 'green': 'red'](bc.leader_key_address.substring(0, 10) + '*')) : (bc.leader_key_address.substring(0, 10) + ' ')}`).join(''),
+          `${block.payments[0].stacks_block_height},${block.payments[0].coinbase / 1000000},${parseInt(block.payments[0].tx_fees_anchored) + parseInt(block.payments[0].tx_fees_streamed) / 1000000}`,
         )
       }
+
+      // if (!use_csv && show_blocks) {
+      //   // console.log(block)
+      //   console.log(
+      //     block.block_height,
+      //     current_winner_block ? block_parent_distance : '?',
+      //     current_winner_block && current_winner_block.parent_block_ptr ? current_winner_block.parent_block_ptr : '   -  ',
+
+      //     // block.block_headers.length ? `${block.block_headers[0].block_height}` : '-',
+      //     block.payments.length ? `${block.payments[0].stacks_block_height}${at_tip}` : '     ',
+      //     block.payments.length ? `${numberWithCommas(parseInt(block.payments[0].coinbase) / 1000000, 2)}` : '   -    ',
+      //     block.payments.length ? `${fixedFee(numberWithCommas(parseInt(block.payments[0].tx_fees_anchored) + parseInt(block.payments[0].tx_fees_streamed), 0))}` : '  -   ',
+      //     block.actual_burn !== 0 ? numberWithCommas(block.actual_burn, 0) : '    -    ',
+      //     block.branch_info ? `${fixedBranchName(block.branch_info.name)}` : '     ',
+      //     // block.branch_info ? block.branch_info.height_created : '-',
+      //     current_winner_block ? `s:${current_winner_block.block_header_hash.substring(0, 10)}` : '     -      ',
+      //     block.block_headers.length ? `p:${block.block_headers[0].parent_block.substring(0, 10)}` : '     -      ',
+      //     current_winner_block ? `c:${block.consensus_hash.substring(0, 10)}` : '     -      ',
+      //     current_winner_block ? `i:${stacks_block_id2.substring(0, 10)}` : '     -      ',
+      //     // block.block_headers.length ? `s:${block.block_headers[0].block_hash.substring(0, 10)}` : '     -      ',
+      //     // block.block_headers.length ? `p:${block.block_headers[0].parent_block.substring(0, 10)}` : '     -      ',
+      //     // block.block_headers.length ? `c:${block.block_headers[0].consensus_hash.substring(0, 10)}` : '     -      ',
+      //     // stacks_block_id !== '-' ? `i:${stacks_block_id.substring(0, 10)}` : '     -      ',
+      //     `b:${block.burn_header_hash.substring(0, 25)}`,
+
+      //     block.block_headers.length ? `${block.block_headers[0].parent_block === parent_hash ? ((parent_winner_block ? parent_winner_block.leader_key_address : null) === (current_winner_block ? current_winner_block.leader_key_address : null) ? '@+' : '@@') : '  '}` : '  ',
+      //     txids,
+      //     block.block_commits.sort((a, b) => (a.leader_key_address.localeCompare(b.leader_key_address))).map(bc => `[${(parseInt(bc.burn_fee) / block_burn * 100).toFixed(1)}]${bc.txid === block.winning_block_txid ? (chalk[block.on_winning_fork ? 'green': 'red'](bc.leader_key_address.substring(0, 10) + '*')) : (bc.leader_key_address.substring(0, 10) + ' ')}`).join(''),
+      //   )
+      // }
       // console.log(block.payments)
       miner_count_last_block = block.block_commits.length
       burn_last_block = block.actual_burn // block.payments.length ? block.payments[0].burnchain_sortition_burn : 0
@@ -1119,312 +1125,312 @@ function process_burnchain_ops() {
       parent_hash = block.block_headers.length ? block.block_headers[0].block_hash : null
     }
 
-    if (show_mining) {
-      const table_options = {
-        chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
-        style: {
-          head: [ 'cyan', 'bold' ],
-          border: ['grey'],
-          'padding-left': 0,
-          'padding-right': 0,
-        },
-        head: [
-          'height',
-          'dist',
-          'parent',
-          'stx\nheight',
-          'reward',
-          'fees\nustx',
-          'paid sats',
-          'branch'
-        ],
-        colAligns: [
-          'right',
-          'right',
-          'right',
-          'right',
-          'right',
-          'right',
-        ],
-      }
+    // if (show_mining) {
+    //   const table_options = {
+    //     chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
+    //     style: {
+    //       head: [ 'cyan', 'bold' ],
+    //       border: ['grey'],
+    //       'padding-left': 0,
+    //       'padding-right': 0,
+    //     },
+    //     head: [
+    //       'height',
+    //       'dist',
+    //       'parent',
+    //       'stx\nheight',
+    //       'reward',
+    //       'fees\nustx',
+    //       'paid sats',
+    //       'branch'
+    //     ],
+    //     colAligns: [
+    //       'right',
+    //       'right',
+    //       'right',
+    //       'right',
+    //       'right',
+    //       'right',
+    //     ],
+    //   }
 
-      const end_height = burn_blocks_by_height[burn_blocks_by_height.length - 1].block_height
-      const start_height = stacks_blocks_by_stacks_block_height[stacks_chain_height - block_count + 1].reduce((min, b) => (b.burn_header_height < min ? b.burn_header_height : min), end_height) // end_height - block_count + 1
+    //   const end_height = burn_blocks_by_height[burn_blocks_by_height.length - 1].block_height
+    //   const start_height = stacks_blocks_by_stacks_block_height[stacks_chain_height - block_count + 1].reduce((min, b) => (b.burn_header_height < min ? b.burn_header_height : min), end_height) // end_height - block_count + 1
 
-      const active_miner_addresses = []
-      // find active miners
-      for (let height = start_height; height <= end_height; height++ ) {
-        const block = burn_blocks_by_height[height]
-        for (let commit of block.block_commits) {
-          if (active_miner_addresses.indexOf(commit.leader_key_address) === -1) {
-            active_miner_addresses.push(commit.leader_key_address)
-            table_options.head.push(' ')
-            table_options.colAligns.push('right')
-          }
-        }
-      }
-      table_options.head.push('miner\ncount')
-      table_options.colAligns.push('right')
+    //   const active_miner_addresses = []
+    //   // find active miners
+    //   for (let height = start_height; height <= end_height; height++ ) {
+    //     const block = burn_blocks_by_height[height]
+    //     for (let commit of block.block_commits) {
+    //       if (active_miner_addresses.indexOf(commit.leader_key_address) === -1) {
+    //         active_miner_addresses.push(commit.leader_key_address)
+    //         table_options.head.push(' ')
+    //         table_options.colAligns.push('right')
+    //       }
+    //     }
+    //   }
+    //   table_options.head.push('miner\ncount')
+    //   table_options.colAligns.push('right')
 
-      const table = new Table(table_options)
-      const sorted_active_miner_addresses = active_miner_addresses.sort()
+    //   const table = new Table(table_options)
+    //   const sorted_active_miner_addresses = active_miner_addresses.sort()
 
-      // display blocks
-      for (let height = start_height; height <= end_height; height++ ) {
-         const block = burn_blocks_by_height[height]
-         const current_winner_block = block.block_commits.find(bc => bc.txid === block.winning_block_txid)
-         const block_parent_distance = current_winner_block ? (block.block_height - current_winner_block.parent_block_ptr) : -1
-         const at_tip = block.on_winning_fork ? '>' : ' '
-         const block_burn = block.block_commits.reduce((acc, bc) => (acc + parseInt(bc.burn_fee)), 0)
+    //   // display blocks
+    //   for (let height = start_height; height <= end_height; height++ ) {
+    //      const block = burn_blocks_by_height[height]
+    //      const current_winner_block = block.block_commits.find(bc => bc.txid === block.winning_block_txid)
+    //      const block_parent_distance = current_winner_block ? (block.block_height - current_winner_block.parent_block_ptr) : -1
+    //      const at_tip = block.on_winning_fork ? '>' : ' '
+    //      const block_burn = block.block_commits.reduce((acc, bc) => (acc + parseInt(bc.burn_fee)), 0)
 
-         const row = []
-         row.push(height)
-         row.push(current_winner_block ? block_parent_distance : ' ')
-         row.push(current_winner_block && current_winner_block.parent_block_ptr ? current_winner_block.parent_block_ptr : ' ')
-         row.push(block.payments.length ? `${block.payments[0].stacks_block_height}${at_tip}` : ' ')
-         row.push(block.payments.length ? `${numberWithCommas(parseInt(block.payments[0].coinbase) / 1000000, 2)}` : ' ')
-         row.push(block.payments.length ? `${fixedFee(numberWithCommas(parseInt(block.payments[0].tx_fees_anchored) + parseInt(block.payments[0].tx_fees_streamed), 0))}` : ' ')
-         row.push(block.actual_burn !== 0 ? numberWithCommas(block.actual_burn, 0) : ' ')
-         row.push(block.branch_info ? `${fixedBranchName(block.branch_info.name)}` : ' ')
+    //      const row = []
+    //      row.push(height)
+    //      row.push(current_winner_block ? block_parent_distance : ' ')
+    //      row.push(current_winner_block && current_winner_block.parent_block_ptr ? current_winner_block.parent_block_ptr : ' ')
+    //      row.push(block.payments.length ? `${block.payments[0].stacks_block_height}${at_tip}` : ' ')
+    //      row.push(block.payments.length ? `${numberWithCommas(parseInt(block.payments[0].coinbase) / 1000000, 2)}` : ' ')
+    //      row.push(block.payments.length ? `${fixedFee(numberWithCommas(parseInt(block.payments[0].tx_fees_anchored) + parseInt(block.payments[0].tx_fees_streamed), 0))}` : ' ')
+    //      row.push(block.actual_burn !== 0 ? numberWithCommas(block.actual_burn, 0) : ' ')
+    //      row.push(block.branch_info ? `${fixedBranchName(block.branch_info.name)}` : ' ')
 
-         let count = 0
-         for (let address of sorted_active_miner_addresses) {
-           const bcs = block.block_commits.filter(c => c.leader_key_address === address)
-           if (bcs.length > 0) {
-             count++
-             if (bcs.find(bc => bc.txid === block.winning_block_txid)) {
-               row.push(chalk[block.on_winning_fork ? 'green': 'red'](`[${(parseInt(bcs[0].burn_fee) / block_burn * 100).toFixed(1)}]` + address.substring(0, 10) + '*'))
-             } else {
-               row.push(`[${(parseInt(bcs[0].burn_fee) / block_burn * 100).toFixed(1)}]` + address.substring(0, 10) + ' ')
-             }
-           } else {
-             row.push(' ')
-           }
-         }
-         row.push(count > 0 ? count : ' ')
-         table.push(row)
-         if (height >  end_height - show_commits) {
-           const extra_row = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
-           for (let address of sorted_active_miner_addresses) {
-             const bcs = block.block_commits.filter(c => c.leader_key_address === address)
-             const amount = bcs.reduce((acc, bc) => acc + parseInt(bc.burn_fee), 0)
-             extra_row.push(amount > 0 ? numberWithCommas(amount, 0) : '')
-           }
-           extra_row.push(' ')
-           table.push(extra_row)
-         }
-      }
-      console.log(table.toString())
-    }
+    //      let count = 0
+    //      for (let address of sorted_active_miner_addresses) {
+    //        const bcs = block.block_commits.filter(c => c.leader_key_address === address)
+    //        if (bcs.length > 0) {
+    //          count++
+    //          if (bcs.find(bc => bc.txid === block.winning_block_txid)) {
+    //            row.push(chalk[block.on_winning_fork ? 'green': 'red'](`[${(parseInt(bcs[0].burn_fee) / block_burn * 100).toFixed(1)}]` + address.substring(0, 10) + '*'))
+    //          } else {
+    //            row.push(`[${(parseInt(bcs[0].burn_fee) / block_burn * 100).toFixed(1)}]` + address.substring(0, 10) + ' ')
+    //          }
+    //        } else {
+    //          row.push(' ')
+    //        }
+    //      }
+    //      row.push(count > 0 ? count : ' ')
+    //      table.push(row)
+    //      if (height >  end_height - show_commits) {
+    //        const extra_row = [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
+    //        for (let address of sorted_active_miner_addresses) {
+    //          const bcs = block.block_commits.filter(c => c.leader_key_address === address)
+    //          const amount = bcs.reduce((acc, bc) => acc + parseInt(bc.burn_fee), 0)
+    //          extra_row.push(amount > 0 ? numberWithCommas(amount, 0) : '')
+    //        }
+    //        extra_row.push(' ')
+    //        table.push(extra_row)
+    //      }
+    //   }
+    //   console.log(table.toString())
+    // }
 
-    if (use_csv) {
-      // display CSV output
-      console.log("STX address,BTC address,actual wins,total wins,total mined,%actual wins,%won,paid satoshis,theoritical win%,avg paid,last paid,rewards,matured rewards")
-      for (let miner_key of Object.keys(miners).filter(miner => miners[miner].mined > 0).sort()) {
-        const miner = miners[miner_key]
-        if (miner.mined > 0) {
-          console.log(`${miner_key},${c32.c32ToB58(miner_key)},${miner.actual_win},${miner.won},${miner.mined},${(miner.actual_win / actual_win_total * 100).toFixed(2)}%,${(miner.won / miner.mined * 100).toFixed(2)}%,${miner.burned},${(miner.burned / miner.total_burn * 100).toFixed(2)}%,${miner.burned / miner.mined},${miner.last_commit},${miner.rewards/1000000},${miner.matured_rewards/1000000}`)
-        }
-        miner.average_burn = miner.burned / miner.mined
-        miner.normalized_wins = miner.won / miner.average_burn
-      }
-    } else {
-      // display console output
-      let pending_rewards = 0
-      for (let miner_key of Object.keys(miners)) {
-        const miner = miners[miner_key]
-        miner.average_burn = miner.burned / miner.mined
-        // miner.normalized_wins = miner.won / miner.average_burn
-        miner.average_distance = miner.distance_sum / miner.distance_count
-        miner.next_average_distance = miner.next_block_commits_distances / miner.next_block_commits_count
-        miner.pending_reward = miner.rewards - miner.matured_rewards
-        pending_rewards += miner.pending_reward
-        if (miner.rewards > 0) {
-          miners_with_rewards[miner_key] = miner
-        }
-      }
+    // if (use_csv) {
+    //   // display CSV output
+    //   console.log("STX address,BTC address,actual wins,total wins,total mined,%actual wins,%won,paid satoshis,theoritical win%,avg paid,last paid,rewards,matured rewards")
+    //   for (let miner_key of Object.keys(miners).filter(miner => miners[miner].mined > 0).sort()) {
+    //     const miner = miners[miner_key]
+    //     if (miner.mined > 0) {
+    //       console.log(`${miner_key},${c32.c32ToB58(miner_key)},${miner.actual_win},${miner.won},${miner.mined},${(miner.actual_win / actual_win_total * 100).toFixed(2)}%,${(miner.won / miner.mined * 100).toFixed(2)}%,${miner.burned},${(miner.burned / miner.total_burn * 100).toFixed(2)}%,${miner.burned / miner.mined},${miner.last_commit},${miner.rewards/1000000},${miner.matured_rewards/1000000}`)
+    //     }
+    //     miner.average_burn = miner.burned / miner.mined
+    //     miner.normalized_wins = miner.won / miner.average_burn
+    //   }
+    // } else {
+    //   // display console output
+    //   let pending_rewards = 0
+    //   for (let miner_key of Object.keys(miners)) {
+    //     const miner = miners[miner_key]
+    //     miner.average_burn = miner.burned / miner.mined
+    //     // miner.normalized_wins = miner.won / miner.average_burn
+    //     miner.average_distance = miner.distance_sum / miner.distance_count
+    //     miner.next_average_distance = miner.next_block_commits_distances / miner.next_block_commits_count
+    //     miner.pending_reward = miner.rewards - miner.matured_rewards
+    //     pending_rewards += miner.pending_reward
+    //     if (miner.rewards > 0) {
+    //       miners_with_rewards[miner_key] = miner
+    //     }
+    //   }
 
-      if (tips.length > 1) {
-        console.log(`>>> WARNING: there are currently ${tips.length} forks of equal length suitable to continue as the canonical fork`)
-      }
+    //   if (tips.length > 1) {
+    //     console.log(`>>> WARNING: there are currently ${tips.length} forks of equal length suitable to continue as the canonical fork`)
+    //   }
 
-      // console.log("Miner Statistics ==================================================================================================================")
-      // console.log("STX address/BTC address - actual wins/total wins/total mined %actual wins %won - paid satoshis Th[theoritical win%] (avg paid - last paid) => rewards = matured rewards + pending rewards")
-      const options = {
-        chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
-        style: {
-          head: [ 'cyan', 'bold' ],
-          border: ['grey'],
-          'padding-left': 0,
-          'padding-right': 0,
-        },
-        head: [
-          '',
-          'STX address',
-          'BTC address',
-          'actual wins/\ntotal wins/\ntotal mined',
-          'actual\nwin %',
-          'won %',
-          'paid\nsatoshis',
-          // 'average\npaid',
-          'last\npaid',
-          'lifetime\nrewards',
-          'rewards',
-          'matured\nrewards',
-          'pending\nrewards',
-          'theo.\nwin %',
-          'share of\npending \nrewards %',
-        ],
-        colAligns: [
-          'right',
-          'right',
-          'right',
-          'right',
-          'right',
-          'right',
-          'right',
-          'right',
-          // 'right',
-          'right',
-          'right',
-          'right',
-          'right',
-          'right',
-          'right',
-        ],
-        // colWidths: [
-        //   0,
-        //   0,
-        //   0,
-        //   0,
-        //   0,
-        //   0,
-        //   0,
-        //   0,
-        //   0,
-        //   0,
-        //   20,
-        //   20,
-        //   20,
-        // ],
-      }
-      if (fee && exchange) {
-        options.head.push('sats/stx')
-        options.head.push('profit\nsats')
-        options.colAligns.push('right')
-        options.colAligns.push('right')
-      }
-      const table = new Table(options)
-      if (use_alpha) {
-        for (let miner_key of Object.keys(miners).filter(miner => miners[miner].mined > 0).sort()) {
-          const miner = miners[miner_key]
-          // console.log(`${last_block - miner.last_block < 4 ? '$' : ' '} ${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / miner.mined * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${(miner.burned / miner.mined).toFixed(0)} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)} = ${numberWithCommas(miner.matured_rewards / 1000000, 2)} + ${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`)
-          if ((!show_recent_only && ((miner.mined > 0 && show_all_miners) || (miner.rewards > 0) || (last_block - miner.last_block < 4))) || ((last_block - miner.last_block < 4) || miner.pending_reward > 0)) {
-            const share_pending_rewards = miner.pending_reward / pending_rewards
-            const share_theoritical = miner.burned / miner.total_burn
-            const row =[
-              `${last_block - miner.last_block < 4 ? '$' : ' '}`,
-              `${miner_key}`,
-              `${c32.c32ToB58(miner_key)}`,
-              `${miner.actual_win}/${miner.won}/${miner.mined}`,
-              `${(miner.actual_win / miner.mined * 100).toFixed(2)}%`,
-              `${(miner.won / miner.mined * 100).toFixed(2)}%`,
-              `${numberWithCommas(miner.burned, 0)}`,
-              // `${(miner.burned / miner.mined).toFixed(0)}`,
-              `${numberWithCommas(parseInt(miner.last_commit), 0)}`,
-              miner.total_rewards !== 0 ? `${numberWithCommas(miner.total_rewards / 1000000, 2)}` : '',
-              miner.rewards !== 0 ? `${numberWithCommas(miner.rewards / 1000000, 2)}` : '',
-              miner.matured_rewards !== 0 ? `${numberWithCommas(miner.matured_rewards / 1000000, 2)}` : '',
-              miner.pending_reward !== 0 ? `${numberWithCommas((miner.pending_reward) / 1000000, 2)}` : '',
-              `${(share_theoritical * 100).toFixed(2)}%`,
-              miner.pending_reward !== 0 ? chalk[share_pending_rewards > share_theoritical ? 'green' : 'red']((share_pending_rewards * 100).toFixed(2)) : '',
-            ]
-            if (fee && exchange) {
-              const fees = fee * miner.mined
-              const cost = (miner.burned + fees) / miner.rewards * 1000000
-              row.push(miner.rewards ? `${chalk[cost > exchange ? 'red' : 'green'](numberWithCommas(cost, 0))}` : '')
-              row.push(miner.rewards ? `${chalk[cost > exchange ? 'red' : 'green'](numberWithCommas( miner.rewards / 1000000 * exchange - miner.burned - fees, 0))}` : chalk.red(numberWithCommas(-(miner.burned + fees), 0)))
-            }
-            table.push(row)
-          }
-        }
-        console.log(table.toString())
-      } else {
-        for (let miner_key of Object.keys(miners).filter(miner => miners[miner].mined > 0).sort((a, b) => (miners[b].last_commit - miners[a].last_commit))) {
-          const miner = miners[miner_key]
-          // console.log(`${last_block - miner.last_block < 4 ? '$' : ' '} ${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / miner.mined * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${(miner.burned / miner.mined).toFixed(0)} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)} = ${numberWithCommas(miner.matured_rewards / 1000000, 2)} + ${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`)
-          if ((!show_recent_only && ((miner.mined > 0 && show_all_miners) || (miner.rewards > 0) || (last_block - miner.last_block < 4))) || ((last_block - miner.last_block < 4) || miner.pending_reward > 0)) {
-            const share_pending_rewards = miner.pending_reward / pending_rewards
-            const share_theoritical = miner.burned / miner.total_burn
-            const row =[
-              `${last_block - miner.last_block < 4 ? '$' : ' '}`,
-              `${miner_key}`,
-              `${c32.c32ToB58(miner_key)}`,
-              `${miner.actual_win}/${miner.won}/${miner.mined}`,
-              `${(miner.actual_win / miner.mined * 100).toFixed(2)}%`,
-              `${(miner.won / miner.mined * 100).toFixed(2)}%`,
-              `${numberWithCommas(miner.burned, 0)}`,
-              // `${(miner.burned / miner.mined).toFixed(0)}`,
-              `${numberWithCommas(parseInt(miner.last_commit), 0)}`,
-              miner.total_rewards !== 0 ? `${numberWithCommas(miner.total_rewards / 1000000, 2)}` : '',
-              miner.rewards !== 0 ? `${numberWithCommas(miner.rewards / 1000000, 2)}` : '',
-              miner.matured_rewards !== 0 ? `${numberWithCommas(miner.matured_rewards / 1000000, 2)}` : '',
-              miner.pending_reward !== 0 ? `${numberWithCommas((miner.pending_reward) / 1000000, 2)}` : '',
-              `${(share_theoritical * 100).toFixed(2)}%`,
-              miner.pending_reward !== 0 ? chalk[share_pending_rewards > share_theoritical ? 'green' : 'red']((share_pending_rewards * 100).toFixed(2)) : '',
-            ]
-            if (fee && exchange) {
-              const fees = fee * miner.mined
-              const cost = (miner.burned + fees) / miner.rewards * 1000000
-              row.push(miner.rewards ? `${chalk[cost > exchange ? 'red' : 'green'](numberWithCommas(cost, 0))}` : '')
-              row.push(miner.rewards ? `${chalk[cost > exchange ? 'red' : 'green'](numberWithCommas( miner.rewards / 1000000 * exchange - miner.burned - fees, 0))}` : chalk.red(numberWithCommas(-(miner.burned + fees), 0)))
-            }
-            table.push(row)
-          }
-        }
-        console.log(table.toString())
-      }
+    //   // console.log("Miner Statistics ==================================================================================================================")
+    //   // console.log("STX address/BTC address - actual wins/total wins/total mined %actual wins %won - paid satoshis Th[theoritical win%] (avg paid - last paid) => rewards = matured rewards + pending rewards")
+    //   const options = {
+    //     chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
+    //     style: {
+    //       head: [ 'cyan', 'bold' ],
+    //       border: ['grey'],
+    //       'padding-left': 0,
+    //       'padding-right': 0,
+    //     },
+    //     head: [
+    //       '',
+    //       'STX address',
+    //       'BTC address',
+    //       'actual wins/\ntotal wins/\ntotal mined',
+    //       'actual\nwin %',
+    //       'won %',
+    //       'paid\nsatoshis',
+    //       // 'average\npaid',
+    //       'last\npaid',
+    //       'lifetime\nrewards',
+    //       'rewards',
+    //       'matured\nrewards',
+    //       'pending\nrewards',
+    //       'theo.\nwin %',
+    //       'share of\npending \nrewards %',
+    //     ],
+    //     colAligns: [
+    //       'right',
+    //       'right',
+    //       'right',
+    //       'right',
+    //       'right',
+    //       'right',
+    //       'right',
+    //       'right',
+    //       // 'right',
+    //       'right',
+    //       'right',
+    //       'right',
+    //       'right',
+    //       'right',
+    //       'right',
+    //     ],
+    //     // colWidths: [
+    //     //   0,
+    //     //   0,
+    //     //   0,
+    //     //   0,
+    //     //   0,
+    //     //   0,
+    //     //   0,
+    //     //   0,
+    //     //   0,
+    //     //   0,
+    //     //   20,
+    //     //   20,
+    //     //   20,
+    //     // ],
+    //   }
+    //   if (fee && exchange) {
+    //     options.head.push('sats/stx')
+    //     options.head.push('profit\nsats')
+    //     options.colAligns.push('right')
+    //     options.colAligns.push('right')
+    //   }
+    //   const table = new Table(options)
+    //   if (use_alpha) {
+    //     for (let miner_key of Object.keys(miners).filter(miner => miners[miner].mined > 0).sort()) {
+    //       const miner = miners[miner_key]
+    //       // console.log(`${last_block - miner.last_block < 4 ? '$' : ' '} ${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / miner.mined * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${(miner.burned / miner.mined).toFixed(0)} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)} = ${numberWithCommas(miner.matured_rewards / 1000000, 2)} + ${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`)
+    //       if ((!show_recent_only && ((miner.mined > 0 && show_all_miners) || (miner.rewards > 0) || (last_block - miner.last_block < 4))) || ((last_block - miner.last_block < 4) || miner.pending_reward > 0)) {
+    //         const share_pending_rewards = miner.pending_reward / pending_rewards
+    //         const share_theoritical = miner.burned / miner.total_burn
+    //         const row =[
+    //           `${last_block - miner.last_block < 4 ? '$' : ' '}`,
+    //           `${miner_key}`,
+    //           `${c32.c32ToB58(miner_key)}`,
+    //           `${miner.actual_win}/${miner.won}/${miner.mined}`,
+    //           `${(miner.actual_win / miner.mined * 100).toFixed(2)}%`,
+    //           `${(miner.won / miner.mined * 100).toFixed(2)}%`,
+    //           `${numberWithCommas(miner.burned, 0)}`,
+    //           // `${(miner.burned / miner.mined).toFixed(0)}`,
+    //           `${numberWithCommas(parseInt(miner.last_commit), 0)}`,
+    //           miner.total_rewards !== 0 ? `${numberWithCommas(miner.total_rewards / 1000000, 2)}` : '',
+    //           miner.rewards !== 0 ? `${numberWithCommas(miner.rewards / 1000000, 2)}` : '',
+    //           miner.matured_rewards !== 0 ? `${numberWithCommas(miner.matured_rewards / 1000000, 2)}` : '',
+    //           miner.pending_reward !== 0 ? `${numberWithCommas((miner.pending_reward) / 1000000, 2)}` : '',
+    //           `${(share_theoritical * 100).toFixed(2)}%`,
+    //           miner.pending_reward !== 0 ? chalk[share_pending_rewards > share_theoritical ? 'green' : 'red']((share_pending_rewards * 100).toFixed(2)) : '',
+    //         ]
+    //         if (fee && exchange) {
+    //           const fees = fee * miner.mined
+    //           const cost = (miner.burned + fees) / miner.rewards * 1000000
+    //           row.push(miner.rewards ? `${chalk[cost > exchange ? 'red' : 'green'](numberWithCommas(cost, 0))}` : '')
+    //           row.push(miner.rewards ? `${chalk[cost > exchange ? 'red' : 'green'](numberWithCommas( miner.rewards / 1000000 * exchange - miner.burned - fees, 0))}` : chalk.red(numberWithCommas(-(miner.burned + fees), 0)))
+    //         }
+    //         table.push(row)
+    //       }
+    //     }
+    //     console.log(table.toString())
+    //   } else {
+    //     for (let miner_key of Object.keys(miners).filter(miner => miners[miner].mined > 0).sort((a, b) => (miners[b].last_commit - miners[a].last_commit))) {
+    //       const miner = miners[miner_key]
+    //       // console.log(`${last_block - miner.last_block < 4 ? '$' : ' '} ${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / miner.mined * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${(miner.burned / miner.mined).toFixed(0)} - ${miner.last_commit}) => ${numberWithCommas(miner.rewards / 1000000, 2)} = ${numberWithCommas(miner.matured_rewards / 1000000, 2)} + ${numberWithCommas((miner.rewards - miner.matured_rewards) / 1000000, 2)}`)
+    //       if ((!show_recent_only && ((miner.mined > 0 && show_all_miners) || (miner.rewards > 0) || (last_block - miner.last_block < 4))) || ((last_block - miner.last_block < 4) || miner.pending_reward > 0)) {
+    //         const share_pending_rewards = miner.pending_reward / pending_rewards
+    //         const share_theoritical = miner.burned / miner.total_burn
+    //         const row =[
+    //           `${last_block - miner.last_block < 4 ? '$' : ' '}`,
+    //           `${miner_key}`,
+    //           `${c32.c32ToB58(miner_key)}`,
+    //           `${miner.actual_win}/${miner.won}/${miner.mined}`,
+    //           `${(miner.actual_win / miner.mined * 100).toFixed(2)}%`,
+    //           `${(miner.won / miner.mined * 100).toFixed(2)}%`,
+    //           `${numberWithCommas(miner.burned, 0)}`,
+    //           // `${(miner.burned / miner.mined).toFixed(0)}`,
+    //           `${numberWithCommas(parseInt(miner.last_commit), 0)}`,
+    //           miner.total_rewards !== 0 ? `${numberWithCommas(miner.total_rewards / 1000000, 2)}` : '',
+    //           miner.rewards !== 0 ? `${numberWithCommas(miner.rewards / 1000000, 2)}` : '',
+    //           miner.matured_rewards !== 0 ? `${numberWithCommas(miner.matured_rewards / 1000000, 2)}` : '',
+    //           miner.pending_reward !== 0 ? `${numberWithCommas((miner.pending_reward) / 1000000, 2)}` : '',
+    //           `${(share_theoritical * 100).toFixed(2)}%`,
+    //           miner.pending_reward !== 0 ? chalk[share_pending_rewards > share_theoritical ? 'green' : 'red']((share_pending_rewards * 100).toFixed(2)) : '',
+    //         ]
+    //         if (fee && exchange) {
+    //           const fees = fee * miner.mined
+    //           const cost = (miner.burned + fees) / miner.rewards * 1000000
+    //           row.push(miner.rewards ? `${chalk[cost > exchange ? 'red' : 'green'](numberWithCommas(cost, 0))}` : '')
+    //           row.push(miner.rewards ? `${chalk[cost > exchange ? 'red' : 'green'](numberWithCommas( miner.rewards / 1000000 * exchange - miner.burned - fees, 0))}` : chalk.red(numberWithCommas(-(miner.burned + fees), 0)))
+    //         }
+    //         table.push(row)
+    //       }
+    //     }
+    //     console.log(table.toString())
+    //   }
 
-      if (show_distances) {
-        console.log("Distances =======================================================================================================================")
-        for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].won - miners[a].won))) {
-          const miner = miners[miner_key]
-          if (miner.mined > 0) {
-            console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.average_distance.toFixed(2)}  <${!isNaN(miner.next_average_distance) ? miner.next_average_distance.toFixed(2) : '----'}> ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)
-          }
-        }
-        console.log("block_parent_distances")
-        for (let index = 0; index < block_parent_distances.length; index++) {
-          const block_parent_distance = block_parent_distances[index]
-          if (block_parent_distance) {
-            console.log(`${index} ${block_parent_distance} ${(block_parent_distance / block_parent_distance_count * 100).toFixed(2)}%`)
-          }
-        }
-        console.log("block_commits_parent_distances")
-        for (let index = 0; index < block_commits_parent_distances.length; index++) {
-          const block_commits_parent_distance = block_commits_parent_distances[index]
-          if (block_commits_parent_distance) {
-            console.log(`${index} ${block_commits_parent_distance} ${(block_commits_parent_distance / block_commits_parent_distance_count * 100).toFixed(2)}%`)
-          }
-        }
-      }
-      if (show_totals) {
-        console.log("Statistics ========================================================================================================================")
-        console.log("miners (last block):", miner_count_last_block)
-        console.log("miners (overall):", Object.keys(miners).length)
-        console.log("miners (won rewards):", Object.keys(miners_with_rewards).length)
-        console.log("total commit (last block):", numberWithCommas(burn_last_block, 0), "sats")
-        console.log("block reward (last block):", numberWithCommas(reward_last_block, 2), "STX")
-        console.log("btc blocks:", blocks)
-        console.log("empty btc blocks:", empty_blocks)
-        console.log("actual_win_total:", actual_win_total)
-        console.log("orphaned blocks:", blocks - empty_blocks - actual_win_total - incorrect_blocks)
-        console.log("incorrect blocks:", incorrect_blocks)
-        if (use_txs) {
-          console.log("total transactions (excl coinbase)", transaction_count)
-        }
-      }
-    }
+    //   if (show_distances) {
+    //     console.log("Distances =======================================================================================================================")
+    //     for (let miner_key of Object.keys(miners).sort((a, b) => (miners[b].won - miners[a].won))) {
+    //       const miner = miners[miner_key]
+    //       if (miner.mined > 0) {
+    //         console.log(`${miner_key}/${c32.c32ToB58(miner_key)} ${adjustSpace(miner_key)} ${miner.average_distance.toFixed(2)}  <${!isNaN(miner.next_average_distance) ? miner.next_average_distance.toFixed(2) : '----'}> ${miner.actual_win}/${miner.won}/${miner.mined} ${(miner.actual_win / actual_win_total * 100).toFixed(2)}% ${(miner.won / miner.mined * 100).toFixed(2)}% - ${numberWithCommas(miner.burned, 0)} - Th[${(miner.burned / miner.total_burn * 100).toFixed(2)}%] (${miner.burned / miner.mined}) ${miner.normalized_wins}`)
+    //       }
+    //     }
+    //     console.log("block_parent_distances")
+    //     for (let index = 0; index < block_parent_distances.length; index++) {
+    //       const block_parent_distance = block_parent_distances[index]
+    //       if (block_parent_distance) {
+    //         console.log(`${index} ${block_parent_distance} ${(block_parent_distance / block_parent_distance_count * 100).toFixed(2)}%`)
+    //       }
+    //     }
+    //     console.log("block_commits_parent_distances")
+    //     for (let index = 0; index < block_commits_parent_distances.length; index++) {
+    //       const block_commits_parent_distance = block_commits_parent_distances[index]
+    //       if (block_commits_parent_distance) {
+    //         console.log(`${index} ${block_commits_parent_distance} ${(block_commits_parent_distance / block_commits_parent_distance_count * 100).toFixed(2)}%`)
+    //       }
+    //     }
+    //   }
+    //   // if (show_totals) {
+    //   //   console.log("Statistics ========================================================================================================================")
+    //   //   console.log("miners (last block):", miner_count_last_block)
+    //   //   console.log("miners (overall):", Object.keys(miners).length)
+    //   //   console.log("miners (won rewards):", Object.keys(miners_with_rewards).length)
+    //   //   console.log("total commit (last block):", numberWithCommas(burn_last_block, 0), "sats")
+    //   //   console.log("block reward (last block):", numberWithCommas(reward_last_block, 2), "STX")
+    //   //   console.log("btc blocks:", blocks)
+    //   //   console.log("empty btc blocks:", empty_blocks)
+    //   //   console.log("actual_win_total:", actual_win_total)
+    //   //   console.log("orphaned blocks:", blocks - empty_blocks - actual_win_total - incorrect_blocks)
+    //   //   console.log("incorrect blocks:", incorrect_blocks)
+    //   //   if (use_txs) {
+    //   //     console.log("total transactions (excl coinbase)", transaction_count)
+    //   //   }
+    //   // }
+    // }
   }
 
 })()
